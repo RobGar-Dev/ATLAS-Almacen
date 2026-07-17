@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/usuario.css">
+    <title>Atlas - Usuario</title>
+</head>
+
+<body>
+    <nav class="presentation-usuario">
+        <div class="title">ATLAS</div>
+        <div class="usuario-bienvenida">
+            Bienvenido, <span id="nombre-usuario">—</span>
+        </div>
+        <button type="button" class="btn-logout" id="logout-btn">Cerrar sesión</button>
+    </nav>
+
+    <section class="buttons">
+        <div class="nuevo-producto">
+            <button type="button" class="btn-primary" id="open-nuevo-producto">+ Nuevo producto</button>
+        </div>
+        <button type="button" class="btn-secondary" id="actualizar-btn">Actualizar</button>
+        <button type="button" class="btn-secondary" id="exportar-btn">Exportar reporte</button>
+        <div class="correo-compras">
+            <button type="button" class="btn-secondary" id="open-correo-compras">Mandar correo a compras</button>
+        </div>
+    </section>
+
+    <!-- Filtros -->
+    <section class="filtros">
+        <div class="field field-inline">
+            <label for="filtro-busqueda">Buscar</label>
+            <input type="text" id="filtro-busqueda" placeholder="Código o nombre...">
+        </div>
+        <div class="field field-inline">
+            <label for="filtro-categoria">Categoría</label>
+            <select id="filtro-categoria">
+                <option value="">Todas</option>
+            </select>
+        </div>
+        <div class="field field-inline">
+            <label for="filtro-stock">Stock</label>
+            <select id="filtro-stock">
+                <option value="">Todos</option>
+                <option value="alto">Stock alto</option>
+                <option value="medio">Stock medio</option>
+                <option value="bajo">Stock bajo</option>
+            </select>
+        </div>
+        <button type="button" class="btn-ghost" id="limpiar-filtros-btn">Limpiar filtros</button>
+    </section>
+
+    <section class="tabla-productos">
+        <table class="productos-registrados">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th class="col-acciones">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-tabla">
+                <!-- Los productos se agregarán aquí dinámicamente -->
+                <tr class="tabla-vacio" id="tabla-vacio-row">
+                    <td colspan="5">Aún no hay productos registrados.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Modal: Agregar nuevo producto -->
+    <div class="modal" id="nuevo-producto-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="nuevo-producto-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="nuevo-producto-title">Agregar nuevo producto</h2>
+            <form id="nuevo-producto-form" novalidate>
+                <div class="field">
+                    <label for="codigo">Código</label>
+                    <input type="text" id="codigo" name="codigo" required>
+                </div>
+                <div class="field">
+                    <label for="nombre">Nombre del producto</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="field">
+                    <label for="categoria">Categoría</label>
+                    <input type="text" id="categoria" name="categoria" required>
+                </div>
+                <div class="field">
+                    <label for="stock">Stock</label>
+                    <input type="number" id="stock" name="stock" required min="0">
+                </div>
+                <button type="submit" class="btn-primary">Agregar producto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar producto -->
+    <div class="modal" id="editar-producto-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editar-producto-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="editar-producto-title">Editar producto</h2>
+            <form id="editar-producto-form" novalidate>
+                <input type="hidden" id="editar-codigo-original" name="codigoOriginal">
+                <div class="field">
+                    <label for="editar-codigo">Código</label>
+                    <input type="text" id="editar-codigo" name="codigo" required>
+                </div>
+                <div class="field">
+                    <label for="editar-nombre">Nombre del producto</label>
+                    <input type="text" id="editar-nombre" name="nombre" required>
+                </div>
+                <div class="field">
+                    <label for="editar-categoria">Categoría</label>
+                    <input type="text" id="editar-categoria" name="categoria" required>
+                </div>
+                <div class="field">
+                    <label for="editar-stock">Stock</label>
+                    <input type="number" id="editar-stock" name="stock" required min="0">
+                </div>
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Confirmar eliminación -->
+    <div class="modal" id="eliminar-producto-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content modal-content-sm" role="dialog" aria-modal="true"
+            aria-labelledby="eliminar-producto-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="eliminar-producto-title">Eliminar producto</h2>
+            <p class="modal-texto">
+                ¿Seguro que quieres eliminar <strong id="eliminar-producto-nombre">este producto</strong>?
+                Esta acción no se puede deshacer.
+            </p>
+            <div class="modal-acciones">
+                <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+                <button type="button" class="btn-danger" id="confirmar-eliminar-btn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Registrar entrada/salida -->
+    <div class="modal" id="movimiento-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="movimiento-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="movimiento-title">Registrar movimiento</h2>
+            <p class="modal-texto" id="movimiento-producto-nombre"></p>
+            <form id="movimiento-form" novalidate>
+                <input type="hidden" id="movimiento-codigo" name="codigo">
+                <div class="field">
+                    <label for="movimiento-tipo">Tipo de movimiento</label>
+                    <select id="movimiento-tipo" name="tipo" required>
+                        <option value="entrada">Entrada</option>
+                        <option value="salida">Salida</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="movimiento-cantidad">Cantidad</label>
+                    <input type="number" id="movimiento-cantidad" name="cantidad" required min="1">
+                </div>
+                <div class="field">
+                    <label for="movimiento-motivo">Motivo</label>
+                    <input type="text" id="movimiento-motivo" name="motivo"
+                        placeholder="Ej. compra a proveedor, salida a obra...">
+                </div>
+                <button type="submit" class="btn-primary">Registrar movimiento</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Enviar correo a compras -->
+    <div class="modal" id="correo-compras-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="correo-compras-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="correo-compras-title">Enviar correo a compras</h2>
+            <p class="asunto-correo"><strong>Asunto:</strong> Requisición de productos</p>
+            <div class="cuerpo-producto" id="cuerpo-producto">
+                <!-- Aquí se genera dinámicamente la lista de productos con stock bajo -->
+            </div>
+            <button type="button" class="btn-primary" id="enviar-correo-btn">Enviar correo</button>
+        </div>
+    </div>
+
+    <!-- Contenedor de mensajes (toasts) -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <script src="../js/usuario.js"></script>
+</body>
+
+</html>

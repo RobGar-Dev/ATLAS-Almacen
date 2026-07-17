@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/admin.css">
+    <title>ATLAS - Administrador</title>
+</head>
+
+<body>
+
+    <div class="admin-layout">
+
+        <!-- ---------- Barra lateral ---------- -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="sidebar-logo">ATLAS</span>
+                <span class="sidebar-eyebrow">Panel administrador</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button type="button" class="nav-item is-active" data-section="dashboard">
+                    Dashboard
+                </button>
+                <button type="button" class="nav-item" data-section="usuarios">
+                    Usuarios
+                </button>
+                <button type="button" class="nav-item" data-section="inventario">
+                    Inventario
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="usuario-bienvenida">
+                    Sesión de <span id="nombre-admin">—</span>
+                </div>
+                <button type="button" class="btn-logout" id="logout-btn">Cerrar sesión</button>
+            </div>
+        </aside>
+
+        <!-- ---------- Contenido principal ---------- -->
+        <main class="admin-main">
+
+            <!-- ===== Dashboard ===== -->
+            <section class="admin-section is-active" id="section-dashboard">
+                <header class="admin-header">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p class="admin-subtitle">Resumen general del almacén</p>
+                    </div>
+                    <button type="button" class="btn-secondary" id="actualizar-dashboard-btn">Actualizar</button>
+                </header>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <span class="kpi-label">Total de productos</span>
+                        <span class="kpi-value" id="kpi-total-productos">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Piezas en inventario</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
+                    </div>
+                    <div class="kpi-card kpi-card-warning">
+                        <span class="kpi-label">Productos en stock bajo</span>
+                        <span class="kpi-value" id="kpi-stock-bajo">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Usuarios activos</span>
+                        <span class="kpi-value" id="kpi-usuarios-activos">0</span>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h2>Distribución de stock</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-stock-nivel"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h2>Productos por categoría</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-categorias"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card chart-card-wide">
+                        <h2>Movimientos de los últimos 7 días</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-movimientos"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Usuarios ===== -->
+            <section class="admin-section" id="section-usuarios">
+                <header class="admin-header">
+                    <div>
+                        <h1>Usuarios</h1>
+                        <p class="admin-subtitle">Administra las cuentas del sistema</p>
+                    </div>
+                </header>
+
+                <div class="section-toolbar">
+                    <button type="button" class="btn-primary" id="open-nuevo-usuario">+ Nuevo usuario</button>
+                    <button type="button" class="btn-secondary" id="actualizar-usuarios-btn">Actualizar</button>
+                    <div class="field field-inline field-search">
+                        <label for="filtro-usuarios" class="sr-only">Buscar usuario por nombre o usuario</label>
+                        <input type="text" id="filtro-usuarios" placeholder="Buscar usuario...">
+                    </div>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-usuarios">
+                        <tr class="tabla-vacio" id="usuarios-vacio-row">
+                            <td colspan="5">Cargando usuarios...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- ===== Inventario ===== -->
+            <section class="admin-section" id="section-inventario">
+                <header class="admin-header">
+                    <div>
+                        <h1>Inventario</h1>
+                        <p class="admin-subtitle">Vista general de productos registrados</p>
+                    </div>
+                </header>
+
+                <div class="section-toolbar">
+                    <div class="field field-inline field-search">
+                        <label for="filtro-inventario" class="sr-only">Buscar producto por código o nombre</label>
+                        <input type="text" id="filtro-inventario" placeholder="Código o nombre...">
+                    </div>
+                    <div class="field field-inline">
+                        <label for="filtro-inventario-nivel" class="sr-only">Filtrar por nivel de stock</label>
+                        <select id="filtro-inventario-nivel">
+                            <option value="">Todos los niveles</option>
+                            <option value="alto">Stock alto</option>
+                            <option value="medio">Stock medio</option>
+                            <option value="bajo">Stock bajo</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-secondary" id="exportar-inventario-btn">Exportar reporte</button>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-inventario">
+                        <tr class="tabla-vacio" id="inventario-vacio-row">
+                            <td colspan="4">Cargando inventario...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal: Nuevo usuario -->
+    <div class="modal" id="nuevo-usuario-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="nuevo-usuario-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="nuevo-usuario-title">Nuevo usuario</h2>
+            <form id="nuevo-usuario-form" novalidate>
+                <div class="field">
+                    <label for="nu-nombre">Nombre completo</label>
+                    <input type="text" id="nu-nombre" name="nombre" required>
+                </div>
+                <div class="field">
+                    <label for="nu-usuario">Usuario</label>
+                    <input type="text" id="nu-usuario" name="usuario" required>
+                </div>
+                <div class="field">
+                    <label for="nu-password">Contraseña</label>
+                    <input type="password" id="nu-password" name="password" required autocomplete="new-password">
+                </div>
+                <div class="field">
+                    <label for="nu-rol">Rol</label>
+                    <select id="nu-rol" name="rol" required>
+                        <option value="vendedor">Vendedor</option>
+                        <option value="administrador">Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Registrar usuario</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar usuario -->
+    <div class="modal" id="editar-usuario-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editar-usuario-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="editar-usuario-title">Editar usuario</h2>
+            <form id="editar-usuario-form" novalidate>
+                <input type="hidden" id="eu-id-original" name="idOriginal">
+                <div class="field">
+                    <label for="eu-nombre">Nombre completo</label>
+                    <input type="text" id="eu-nombre" name="nombre" required>
+                </div>
+                <div class="field">
+                    <label for="eu-usuario">Usuario</label>
+                    <input type="text" id="eu-usuario" name="usuario" required>
+                </div>
+                <div class="field">
+                    <label for="eu-rol">Rol</label>
+                    <select id="eu-rol" name="rol" required>
+                        <option value="vendedor">Vendedor</option>
+                        <option value="administrador">Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Confirmar eliminación de usuario -->
+    <div class="modal" id="eliminar-usuario-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content modal-content-sm" role="dialog" aria-modal="true"
+            aria-labelledby="eliminar-usuario-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="eliminar-usuario-title">Eliminar usuario</h2>
+            <p class="modal-texto">
+                ¿Seguro que quieres eliminar a <strong id="eliminar-usuario-nombre">este usuario</strong>?
+                Esta acción no se puede deshacer.
+            </p>
+            <div class="modal-acciones">
+                <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
+                <button type="button" class="btn-danger" id="confirmar-eliminar-usuario-btn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de mensajes (toasts) -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+
+</html>

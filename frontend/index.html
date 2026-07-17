@@ -1,0 +1,85 @@
+<!--Punto de Partida del programa-LOG IN-->
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./css/index.css">
+    <title>Almacén ATLAS · Iniciar sesión</title>
+</head>
+
+<body>
+
+    <main class="main-register">
+
+        <!-- Panel de bienvenida -->
+        <section class="welcome-message">
+            <div class="welcome-content">
+                <span class="eyebrow">Sistema de gestión de almacén</span>
+                <h1>ATLAS</h1>
+                <p class="welcome-tagline">Control total de tu inventario, en un solo lugar.</p>
+            </div>
+        </section>
+
+        <!-- Panel de formulario -->
+        <section class="entered-data">
+            <div class="form-wrapper">
+                <h2>Iniciar sesión</h2>
+                <p class="form-subtitle">Ingresa tus credenciales para continuar</p>
+
+                <form id="login-form" action="login.php" method="POST" novalidate>
+                    <div class="field">
+                        <label for="login-username">Usuario</label>
+                        <input type="text" id="login-username" name="username" placeholder="Usuario" required
+                            autocomplete="username">
+                    </div>
+                    <div class="field">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" name="password" placeholder="Contraseña" required
+                            autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-primary">Iniciar sesión</button>
+                </form>
+
+                <div class="form-links">
+                    <a href="#" class="link-user" id="open-register">Registrar usuario</a>
+                    <a href="#" class="link-user">Recuperar cuenta</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Registrar usuario -->
+    <div class="modal" id="register-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="register-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="register-title">Registrar usuario</h2>
+            <form id="register-form" action="#" method="POST" novalidate>
+                <div class="field">
+                    <label for="register-username">Usuario</label>
+                    <input type="text" id="register-username" name="username" placeholder="Usuario" required
+                        autocomplete="username">
+                </div>
+                <div class="field">
+                    <label for="register-password">Contraseña</label>
+                    <input type="password" id="register-password" name="password" placeholder="Contraseña" required
+                        autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-primary">Registrar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+    <script src="./js/index.js"></script>
+</body>
+
+</html>

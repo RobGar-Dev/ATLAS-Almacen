@@ -1,0 +1,471 @@
+/*index.css*/
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* ---------- Color: base ----------
+     Fondo claro con temperatura fría (no crema), tinta casi
+     negra con matiz azulado, y un violeta eléctrico como firma. */
+    --mist-000: #f6f7fb;
+    --mist-050: #eef0f7;
+    --mist-100: #e2e5f0;
+    --mist-200: #c9cee0;
+
+    --ink-900: #12121c;
+    --ink-700: #34354a;
+    --ink-500: #6b6d85;
+
+    --surface-000: #ffffff;
+    --surface-raised: #ffffff;
+
+    --volt-600: #4b3df0;
+    --volt-500: #6a5bff;
+    --volt-400: #8b7fff;
+    --volt-100: #e8e5ff;
+
+    --coral-500: #ff5470;
+    --coral-100: #ffe3e8;
+
+    --mint-500: #17b890;
+    --mint-100: #d9f5ec;
+
+    --amber-500: #f5a524;
+    --amber-100: #fdf0d9;
+
+    --rose-600: #e0264f;
+    --rose-100: #fbdde5;
+
+    /* ---------- Color: semántico ---------- */
+    --color-bg: var(--mist-000);
+    --color-bg-alt: var(--mist-050);
+    --color-surface: var(--surface-000);
+    --color-border: var(--mist-100);
+    --color-border-strong: var(--mist-200);
+
+    --color-text: var(--ink-900);
+    --color-text-muted: var(--ink-700);
+    --color-text-subtle: var(--ink-500);
+
+    --color-accent: var(--volt-600);
+    --color-accent-hover: var(--volt-500);
+    --color-accent-soft: var(--volt-100);
+
+    --color-cta: var(--coral-500);
+    --color-cta-hover: #ff3355;
+
+    --color-success: var(--mint-500);
+    --color-success-soft: var(--mint-100);
+    --color-warning: var(--amber-500);
+    --color-warning-soft: var(--amber-100);
+    --color-danger: var(--rose-600);
+    --color-danger-soft: var(--rose-100);
+
+    --gradient-signature: linear-gradient(135deg, var(--volt-600) 0%, var(--coral-500) 100%);
+
+    /* ---------- Tipografía ---------- */
+    --font-display: "Space Grotesk", "General Sans", sans-serif;
+    --font-body: "Inter", "Manrope", sans-serif;
+
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.875rem;
+    --fs-base: 1rem;
+    --fs-md: 1.125rem;
+    --fs-lg: 1.375rem;
+    --fs-xl: 1.875rem;
+    --fs-2xl: 2.75rem;
+    --fs-3xl: 4rem;
+
+    --lh-tight: 1.1;
+    --lh-normal: 1.5;
+    --lh-relaxed: 1.7;
+
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+
+    --ls-tight: -0.02em;
+    --ls-wide: 0.06em;
+
+    /* ---------- Espaciado ---------- */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-8: 3rem;
+    --space-10: 4rem;
+    --space-12: 6rem;
+
+    /* ---------- Bordes y radios ---------- */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-full: 999px;
+    --border-width: 1px;
+
+    /* ---------- Sombra ---------- */
+    --shadow-sm: 0 1px 3px rgba(18, 18, 28, 0.06);
+    --shadow-md: 0 8px 24px rgba(75, 61, 240, 0.10);
+    --shadow-lg: 0 20px 48px rgba(75, 61, 240, 0.16);
+    --shadow-focus: 0 0 0 4px rgba(106, 91, 255, 0.35);
+
+    /* ---------- Transiciones ---------- */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+    --duration-slow: 450ms;
+
+    /* ---------- Capas ---------- */
+    --z-overlay: 30;
+    --z-modal: 40;
+    --z-toast: 50;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --duration-fast: 0ms;
+        --duration-base: 0ms;
+        --duration-slow: 0ms;
+    }
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background: var(--color-bg);
+}
+
+/* ============================================================
+   Layout principal: panel de bienvenida + panel de formulario
+   ============================================================ */
+
+.main-register {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* ---------- Panel de bienvenida ----------
+   Fondo con degradado de firma + textura de rejilla de estantería,
+   referencia directa al mundo de un almacén (racking grid). */
+.welcome-message {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    background-image:
+        linear-gradient(rgba(18, 18, 28, 0.55), rgba(18, 18, 28, 0.55)),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 64px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 64px),
+        var(--gradient-signature);
+    color: var(--surface-000);
+    overflow: hidden;
+}
+
+.welcome-content {
+    position: relative;
+    max-width: 380px;
+    text-align: left;
+}
+
+.eyebrow {
+    display: inline-block;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: var(--space-4);
+}
+
+.welcome-message h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-tight);
+    line-height: var(--lh-tight);
+    margin-bottom: var(--space-4);
+}
+
+.welcome-tagline {
+    font-size: var(--fs-md);
+    line-height: var(--lh-relaxed);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* ---------- Panel de formulario ---------- */
+.entered-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6);
+    background: var(--color-surface);
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 360px;
+}
+
+.form-wrapper h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-tight);
+    margin-bottom: var(--space-2);
+}
+
+.form-subtitle {
+    font-size: var(--fs-sm);
+    color: var(--color-text-subtle);
+    margin-bottom: var(--space-6);
+}
+
+.field {
+    margin-bottom: var(--space-4);
+}
+
+.field label {
+    display: block;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+}
+
+.field input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    color: var(--color-text);
+    background: var(--color-bg-alt);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: border-color var(--duration-fast) var(--ease-standard),
+        box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.field input::placeholder {
+    color: var(--color-text-subtle);
+}
+
+.field input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-focus);
+}
+
+.btn-primary {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    color: var(--surface-000);
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-standard),
+        transform var(--duration-fast) var(--ease-standard);
+}
+
+.btn-primary:hover {
+    background: var(--color-accent-hover);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+.btn-primary:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+}
+
+.form-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--space-5);
+}
+
+.link-user {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+.link-user:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================
+   Modal: Registrar usuario
+   ============================================================ */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+}
+
+.modal.is-open {
+    display: flex;
+}
+
+.modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(18, 18, 28, 0.55);
+    z-index: var(--z-overlay);
+}
+
+.modal-content {
+    position: relative;
+    z-index: var(--z-modal);
+    width: min(90vw, 400px);
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: modal-in var(--duration-base) var(--ease-standard);
+}
+
+@keyframes modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-content h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-semibold);
+    margin-bottom: var(--space-5);
+}
+
+.modal-content .close {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-lg);
+    line-height: 1;
+    color: var(--color-text-subtle);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+}
+
+.modal-content .close:hover {
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+}
+
+/* ============================================================
+   Toasts: Usuario registrado / Hubo un error / Iniciando sesión...
+   ============================================================ */
+
+.toast-container {
+    position: fixed;
+    top: var(--space-5);
+    right: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    z-index: var(--z-toast);
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--surface-000);
+    background: var(--ink-900);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transform: translateX(16px);
+    transition: opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-standard);
+}
+
+.toast-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-info {
+    background: var(--color-accent);
+}
+
+.toast-success {
+    background: var(--color-success);
+}
+
+.toast-error {
+    background: var(--color-danger);
+}
+
+/* ============================================================
+   Responsive: apila los paneles en pantallas angostas
+   ============================================================ */
+
+@media (max-width: 860px) {
+    .main-register {
+        grid-template-columns: 1fr;
+    }
+
+    .welcome-message {
+        padding: var(--space-10) var(--space-6);
+        min-height: 260px;
+    }
+
+    .welcome-message h1 {
+        font-size: var(--fs-2xl);
+    }
+
+    .entered-data {
+        padding: var(--space-8) var(--space-6);
+    }
+
+    .toast-container {
+        left: var(--space-4);
+        right: var(--space-4);
+    }
+
+    .toast {
+        justify-content: center;
+    }
+}
