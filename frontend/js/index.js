@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Guarda la sesión: usuario.js y admin.js leen estas mismas llaves.
             localStorage.setItem(ATLAS_STORAGE_KEYS.token, data.token);
-            localStorage.setItem(ATLAS_STORAGE_KEYS.nombre, data.usuario.nombre);
+            localStorage.setItem(ATLAS_STORAGE_KEYS.usuario, data.usuario.usuario);
             localStorage.setItem(ATLAS_STORAGE_KEYS.rol, data.usuario.rol);
 
             hideToast(loadingToast);

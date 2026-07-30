@@ -10,7 +10,7 @@ const API_BASE_URL = 'http://localhost:4000/api';
 
 // Llaves usadas en localStorage para la sesión, centralizadas aquí
 // para que index.js, usuario.js y admin.js siempre coincidan.
-const ATLAS_STORAGRE_KEYS = {
+const ATLAS_STORAGE_KEYS = {
     token: 'atlas_token',
     usuario: 'atlas_usuario',
     rol: 'atlas_rol',
