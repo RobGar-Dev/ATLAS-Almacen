@@ -1,12 +1,22 @@
 //admin.js
 /* ============================================================
    Almacén ATLAS — panel de administrador
-   Los datos están simulados (mockRequest + arreglos locales).
-   Cuando conectes Node.js + Express + MySQL, reemplaza cada
-   bloque marcado con "TODO backend" por tu llamada fetch() real.
+   Conectado al backend real (ver API_BASE_URL en config.js,
+   que debe cargarse antes que este archivo).
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    /* ---------- Guarda de sesión ----------
+       Si no hay token o el rol guardado no es "administrador",
+       ni siquiera se intenta cargar el panel. */
+    const token = localStorage.getItem(ATLAS_STORAGE_KEYS.token);
+    const rolSesion = localStorage.getItem(ATLAS_STORAGE_KEYS.rol);
+
+    if (!token || rolSesion !== 'administrador') {
+        window.location.href = '../index.html';
+        return;
+    }
 
     /* ---------- Toasts ---------- */
     const toastContainer = document.getElementById('toast-container');
@@ -38,20 +48,40 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.addEventListener('transitionend', () => toast.remove(), { once: true });
     }
 
-    /* ---------- Utilidad: simula latencia de red mientras no hay backend ---------- */
-    function mockRequest(ms = 900, shouldFail = false) {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                shouldFail ? reject(new Error('Fallo simulado')) : resolve();
-            }, ms);
+    /* ---------- Fetch autenticado ----------
+       Agrega el header Authorization en cada llamada y centraliza
+       el manejo de errores. Si el token ya expiró (401), cierra la
+       sesión local y regresa al login. */
+    async function apiFetch(path, options = {}) {
+        const response = await fetch(`${API_BASE_URL}${path}`, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem(ATLAS_STORAGE_KEYS.token)}`,
+                ...(options.headers || {}),
+            },
         });
+
+        if (response.status === 401) {
+            localStorage.removeItem(ATLAS_STORAGE_KEYS.token);
+            localStorage.removeItem(ATLAS_STORAGE_KEYS.nombre);
+            localStorage.removeItem(ATLAS_STORAGE_KEYS.rol);
+            window.location.href = '../index.html';
+            throw new Error('Sesión expirada');
+        }
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || data.success === false) {
+            throw new Error(data.message || 'Ocurrió un error con el servidor');
+        }
+
+        return data;
     }
 
     /* ---------- Sesión ---------- */
-
-    // TODO backend: reemplazar por el admin real devuelto al iniciar sesión
-    const nombreAdminEl = document.getElementById('nombre-admin');
-    nombreAdminEl.textContent = localStorage.getItem('atlas_usuario') || 'Administrador';
+    document.getElementById('nombre-admin').textContent =
+        localStorage.getItem(ATLAS_STORAGE_KEYS.nombre) || 'Administrador';
 
     /* ============================================================
        Navegación entre secciones
@@ -61,12 +91,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.admin-section');
 
     navItems.forEach((btn) => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             navItems.forEach((b) => b.classList.remove('is-active'));
             sections.forEach((s) => s.classList.remove('is-active'));
 
             btn.classList.add('is-active');
             document.getElementById(`section-${btn.dataset.section}`).classList.add('is-active');
+
+            // El inventario no tiene botón "Actualizar" propio, así que
+            // se refresca solo al entrar a la pestaña.
+            if (btn.dataset.section === 'inventario') {
+                try {
+                    await cargarProductos();
+                    renderTablaInventario();
+                } catch (error) {
+                    showToast(error.message || 'No se pudo actualizar el inventario', 'error');
+                }
+            }
         });
     });
 
@@ -84,38 +125,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ============================================================
-       Datos simulados
+       Estado en memoria (se llena desde el backend)
        ============================================================ */
 
-    // TODO backend: reemplazar por GET /api/productos
-    let productos = [
-        { codigo: 'A-001', nombre: 'Cable THHW 12 AWG', categoria: 'Cableado', stock: 42 },
-        { codigo: 'A-014', nombre: 'Interruptor termomagnético 2P', categoria: 'Protecciones', stock: 3 },
-        { codigo: 'A-027', nombre: 'Contactor 40A', categoria: 'Control', stock: 8 },
-        { codigo: 'A-033', nombre: 'Charola metálica 4"', categoria: 'Cableado', stock: 20 },
-        { codigo: 'A-041', nombre: 'Relevador térmico 32A', categoria: 'Protecciones', stock: 12 },
-        { codigo: 'A-052', nombre: 'PLC modular 16E/16S', categoria: 'Control', stock: 5 },
-    ];
+    let productos = [];
+    let usuarios = [];
+    let movimientosSemana = [];
 
-    // TODO backend: reemplazar por GET /api/usuarios
-    let usuarios = [
-        { id: 1, nombre: 'Ana Torres', usuario: 'ana.torres', rol: 'administrador', activo: true },
-        { id: 2, nombre: 'Luis Peña', usuario: 'luis.pena', rol: 'vendedor', activo: true },
-        { id: 3, nombre: 'Marco Ruiz', usuario: 'marco.ruiz', rol: 'vendedor', activo: false },
-    ];
+    async function cargarProductos() {
+        const data = await apiFetch('/productos');
+        productos = data.productos;
+    }
 
-    // TODO backend: reemplazar por GET /api/movimientos?dias=7
-    const movimientosSemana = [
-        { dia: 'Lun', entradas: 12, salidas: 8 },
-        { dia: 'Mar', entradas: 6, salidas: 10 },
-        { dia: 'Mié', entradas: 18, salidas: 4 },
-        { dia: 'Jue', entradas: 9, salidas: 14 },
-        { dia: 'Vie', entradas: 22, salidas: 11 },
-        { dia: 'Sáb', entradas: 3, salidas: 6 },
-        { dia: 'Dom', entradas: 0, salidas: 2 },
-    ];
+    async function cargarUsuarios() {
+        const data = await apiFetch('/usuarios');
+        usuarios = data.usuarios;
+    }
 
-    let siguienteIdUsuario = usuarios.length + 1;
+    /* El backend regresa filas agrupadas por día + tipo (solo los días
+       que tuvieron movimientos). Se rellenan los días faltantes con 0
+       para que la gráfica siempre muestre los últimos N días completos. */
+    function construirRangoDias(dias) {
+        const rango = [];
+        for (let i = dias - 1; i >= 0; i--) {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() - i);
+            rango.push(fecha.toISOString().slice(0, 10)); // YYYY-MM-DD
+        }
+        return rango;
+    }
+
+    function formatearDiaCorto(fechaISO) {
+        const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const fecha = new Date(`${fechaISO}T00:00:00`);
+        return nombresDias[fecha.getDay()];
+    }
+
+    function transformarMovimientos(filas, dias) {
+        const rango = construirRangoDias(dias);
+        return rango.map((fechaISO) => ({
+            dia: formatearDiaCorto(fechaISO),
+            entradas: filas
+                .filter((f) => f.dia === fechaISO && f.tipo === 'entrada')
+                .reduce((acc, f) => acc + Number(f.total), 0),
+            salidas: filas
+                .filter((f) => f.dia === fechaISO && f.tipo === 'salida')
+                .reduce((acc, f) => acc + Number(f.total), 0),
+        }));
+    }
+
+    async function cargarMovimientos(dias = 7) {
+        const data = await apiFetch(`/movimientos?dias=${dias}`);
+        movimientosSemana = transformarMovimientos(data.movimientos, dias);
+    }
+
+    async function cargarTodo() {
+        await Promise.all([cargarProductos(), cargarUsuarios(), cargarMovimientos(7)]);
+    }
 
     /* ============================================================
        Dashboard: KPIs
@@ -139,12 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const paletaChart = {
         volt: '#4b3df0',
-        voltSoft: '#8b7fff',
         coral: '#ff5470',
         mint: '#17b890',
         amber: '#f5a524',
         rose: '#e0264f',
-        ink: '#12121c',
         grid: '#e2e5f0',
     };
 
@@ -160,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
             productos.filter((p) => p.categoria === cat).reduce((acc, p) => acc + p.stock, 0)
         );
 
-        // ---- Doughnut: distribución de stock ----
         const ctxNivel = document.getElementById('chart-stock-nivel');
         if (chartStockNivel) chartStockNivel.destroy();
         chartStockNivel = new Chart(ctxNivel, {
@@ -177,13 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '65%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16 } },
-                },
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16 } } },
             },
         });
 
-        // ---- Barras: productos por categoría ----
         const ctxCategorias = document.getElementById('chart-categorias');
         if (chartCategorias) chartCategorias.destroy();
         chartCategorias = new Chart(ctxCategorias, {
@@ -209,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
             },
         });
 
-        // ---- Línea: movimientos últimos 7 días ----
         const ctxMovimientos = document.getElementById('chart-movimientos');
         if (chartMovimientos) chartMovimientos.destroy();
         chartMovimientos = new Chart(ctxMovimientos, {
@@ -252,27 +311,19 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCharts();
     }
 
-    renderDashboard();
-
     const actualizarDashboardBtn = document.getElementById('actualizar-dashboard-btn');
     actualizarDashboardBtn.addEventListener('click', async () => {
         actualizarDashboardBtn.disabled = true;
         const loadingToast = showToast('Actualizando dashboard...', 'info', 0);
 
         try {
-            // TODO backend: reemplazar por tus endpoints reales de resumen, ej:
-            // const [productosRes, usuariosRes, movimientosRes] = await Promise.all([
-            //     fetch('/api/productos'), fetch('/api/usuarios'), fetch('/api/movimientos?dias=7')
-            // ]);
-
-            await mockRequest();
-
+            await cargarTodo();
             renderDashboard();
             hideToast(loadingToast);
             showToast('Dashboard actualizado', 'success');
         } catch (error) {
             hideToast(loadingToast);
-            showToast('Ocurrió un error al actualizar el dashboard', 'error');
+            showToast(error.message || 'Ocurrió un error al actualizar el dashboard', 'error');
         } finally {
             actualizarDashboardBtn.disabled = false;
         }
@@ -366,7 +417,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     filtroUsuarios.addEventListener('input', renderTablaUsuarios);
-    renderTablaUsuarios();
 
     cuerpoTablaUsuarios.addEventListener('click', (event) => {
         const btn = event.target.closest('[data-accion]');
@@ -398,33 +448,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(nuevoUsuarioForm);
         const payload = Object.fromEntries(formData.entries());
 
-        if (usuarios.some((u) => u.usuario === payload.usuario)) {
-            hideToast(loadingToast);
-            showToast('Ocurrió un error con el registro: el usuario ya existe', 'error');
-            submitButton.disabled = false;
-            return;
-        }
-
         try {
-            // TODO backend: reemplazar por tu endpoint real de Express, ej:
-            // const response = await fetch('/api/usuarios', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(payload) // la contraseña debe hashearse en el servidor (bcrypt)
-            // });
-            // if (!response.ok) throw new Error('No se pudo registrar el usuario');
-            // const nuevoUsuario = await response.json();
-
-            await mockRequest();
-
-            usuarios.push({
-                id: siguienteIdUsuario++, // TODO backend: usar el id devuelto por MySQL
-                nombre: payload.nombre,
-                usuario: payload.usuario,
-                rol: payload.rol,
-                activo: true,
+            const data = await apiFetch('/usuarios', {
+                method: 'POST',
+                body: JSON.stringify(payload),
             });
 
+            usuarios.push(data.usuario);
             renderTablaUsuarios();
             renderKpis();
 
@@ -435,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             hideToast(loadingToast);
-            showToast('Ocurrió un error con el registro', 'error');
+            showToast(error.message || 'Ocurrió un error con el registro', 'error');
         } finally {
             submitButton.disabled = false;
         }
@@ -452,6 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('eu-nombre').value = usuario.nombre;
         document.getElementById('eu-usuario').value = usuario.usuario;
         document.getElementById('eu-rol').value = usuario.rol;
+        document.getElementById('eu-password').value = ''; // nunca se precarga una contraseña
         openModal(editarUsuarioModal);
     }
 
@@ -466,28 +497,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = Object.fromEntries(formData.entries());
         const id = Number(payload.idOriginal);
 
-        const usuarioDuplicado = usuarios.some((u) => u.usuario === payload.usuario && u.id !== id);
-        if (usuarioDuplicado) {
-            hideToast(loadingToast);
-            showToast('Ocurrió un error al actualizar: el usuario ya existe', 'error');
-            submitButton.disabled = false;
-            return;
-        }
+        const cuerpo = { nombre: payload.nombre, usuario: payload.usuario, rol: payload.rol };
+        if (payload.password) cuerpo.password = payload.password; // solo si el admin escribió una nueva
 
         try {
-            // TODO backend: reemplazar por tu endpoint real de Express, ej:
-            // const response = await fetch(`/api/usuarios/${id}`, {
-            //     method: 'PUT',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(payload)
-            // });
-            // if (!response.ok) throw new Error('No se pudo actualizar el usuario');
-
-            await mockRequest();
+            const data = await apiFetch(`/usuarios/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(cuerpo),
+            });
 
             const index = usuarios.findIndex((u) => u.id === id);
             if (index !== -1) {
-                usuarios[index] = { ...usuarios[index], nombre: payload.nombre, usuario: payload.usuario, rol: payload.rol };
+                usuarios[index] = { ...usuarios[index], ...data.usuario };
             }
 
             renderTablaUsuarios();
@@ -499,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             hideToast(loadingToast);
-            showToast('Ocurrió un error al actualizar', 'error');
+            showToast(error.message || 'Ocurrió un error al actualizar', 'error');
         } finally {
             submitButton.disabled = false;
         }
@@ -525,11 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadingToast = showToast('Eliminando usuario...', 'info', 0);
 
         try {
-            // TODO backend: reemplazar por tu endpoint real de Express, ej:
-            // const response = await fetch(`/api/usuarios/${idUsuarioAEliminar}`, { method: 'DELETE' });
-            // if (!response.ok) throw new Error('No se pudo eliminar el usuario');
-
-            await mockRequest();
+            await apiFetch(`/usuarios/${idUsuarioAEliminar}`, { method: 'DELETE' });
 
             usuarios = usuarios.filter((u) => u.id !== idUsuarioAEliminar);
             renderTablaUsuarios();
@@ -541,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             hideToast(loadingToast);
-            showToast('Ocurrió un error al eliminar', 'error');
+            showToast(error.message || 'Ocurrió un error al eliminar', 'error');
         } finally {
             confirmarEliminarUsuarioBtn.disabled = false;
             idUsuarioAEliminar = null;
@@ -554,15 +571,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadingToast = showToast('Actualizando estado...', 'info', 0);
 
         try {
-            // TODO backend: reemplazar por tu endpoint real de Express, ej:
-            // const response = await fetch(`/api/usuarios/${usuario.id}/estado`, {
-            //     method: 'PATCH',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ activo: !usuario.activo })
-            // });
-            // if (!response.ok) throw new Error('No se pudo actualizar el estado');
-
-            await mockRequest(600);
+            await apiFetch(`/usuarios/${usuario.id}/estado`, {
+                method: 'PATCH',
+                body: JSON.stringify({ activo: !usuario.activo }),
+            });
 
             usuario.activo = !usuario.activo;
             renderTablaUsuarios();
@@ -573,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             hideToast(loadingToast);
-            showToast('Ocurrió un error al actualizar el estado', 'error');
+            showToast(error.message || 'Ocurrió un error al actualizar el estado', 'error');
         }
     }
 
@@ -585,16 +597,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadingToast = showToast('Actualizando lista...', 'info', 0);
 
         try {
-            // TODO backend: reemplazar por GET /api/usuarios
-
-            await mockRequest();
-
+            await cargarUsuarios();
             renderTablaUsuarios();
+            renderKpis();
             hideToast(loadingToast);
             showToast('Lista actualizada', 'success');
         } catch (error) {
             hideToast(loadingToast);
-            showToast('Ocurrió un error al actualizar la lista', 'error');
+            showToast(error.message || 'Ocurrió un error al actualizar la lista', 'error');
         } finally {
             actualizarUsuariosBtn.disabled = false;
         }
@@ -653,7 +663,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     [filtroInventario, filtroInventarioNivel].forEach((el) => el.addEventListener('input', renderTablaInventario));
-    renderTablaInventario();
 
     const exportarInventarioBtn = document.getElementById('exportar-inventario-btn');
 
@@ -665,67 +674,46 @@ document.addEventListener('DOMContentLoaded', () => {
             .join('\n');
     }
 
-    exportarInventarioBtn.addEventListener('click', async () => {
-        exportarInventarioBtn.disabled = true;
-        const loadingToast = showToast('Generando reporte...', 'info', 0);
+    exportarInventarioBtn.addEventListener('click', () => {
+        const csv = generarCSV(obtenerInventarioFiltrado());
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
 
-        try {
-            // TODO backend: si el reporte se genera en el servidor, reemplaza por:
-            // const response = await fetch('/api/productos/reporte');
-            // const blob = await response.blob();
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = `reporte-inventario-atlas-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        URL.revokeObjectURL(url);
 
-            await mockRequest(700);
-
-            const csv = generarCSV(obtenerInventarioFiltrado());
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-
-            const enlace = document.createElement('a');
-            enlace.href = url;
-            enlace.download = `reporte-inventario-atlas-${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(enlace);
-            enlace.click();
-            enlace.remove();
-            URL.revokeObjectURL(url);
-
-            hideToast(loadingToast);
-            showToast('Reporte exportado', 'success');
-
-        } catch (error) {
-            hideToast(loadingToast);
-            showToast('Ocurrió un error al exportar', 'error');
-        } finally {
-            exportarInventarioBtn.disabled = false;
-        }
+        showToast('Reporte exportado', 'success');
     });
 
     /* ============================================================
        Cerrar sesión
        ============================================================ */
 
-    const logoutBtn = document.getElementById('logout-btn');
-
-    logoutBtn.addEventListener('click', async () => {
-        logoutBtn.disabled = true;
-        const loadingToast = showToast('Cerrando sesión...', 'info', 0);
-
-        try {
-            // TODO backend: reemplazar por tu endpoint real de Express, ej:
-            // const response = await fetch('/api/logout', { method: 'POST' });
-            // if (!response.ok) throw new Error('No se pudo cerrar la sesión');
-
-            await mockRequest(700);
-
-            localStorage.removeItem('atlas_usuario');
-
-            hideToast(loadingToast);
-            window.location.href = '../index.html';
-
-        } catch (error) {
-            hideToast(loadingToast);
-            showToast('Ocurrió un error al cerrar la sesión', 'error');
-            logoutBtn.disabled = false;
-        }
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        localStorage.removeItem(ATLAS_STORAGE_KEYS.token);
+        localStorage.removeItem(ATLAS_STORAGE_KEYS.nombre);
+        localStorage.removeItem(ATLAS_STORAGE_KEYS.rol);
+        window.location.href = '../index.html';
     });
+
+    /* ============================================================
+       Carga inicial
+       ============================================================ */
+
+    (async () => {
+        try {
+            await cargarTodo();
+            renderDashboard();
+            renderTablaUsuarios();
+            renderTablaInventario();
+        } catch (error) {
+            showToast(error.message || 'No se pudo cargar la información inicial', 'error');
+        }
+    })();
 
 });

@@ -25,15 +25,26 @@ async function crear({ nombre, usuario, password, rol }) {
     return { id: resultado.insertId, nombre, usuario, rol, activo: true };
 }
 
-async function actualizar(id, { nombre, usuario, rol }) {
+async function actualizar(id, { nombre, usuario, rol, password }) {
     const [duplicado] = await pool.query('SELECT id FROM usuarios WHERE usuario = ? AND id != ?', [usuario, id]);
     if (duplicado[0]) throw new ApiError(409, 'Ese nombre de usuario ya existe');
 
-    const [resultado] = await pool.query(
-        'UPDATE usuarios SET nombre = ?, usuario = ?, rol = ? WHERE id = ?',
-        [nombre, usuario, rol, id]
-    );
-    if (resultado.affectedRows === 0) throw new ApiError(404, 'Usuario no encontrado');
+    // La contraseña es opcional al editar: si no se manda (o viene vacía),
+    // se deja la que ya tenía. Si se manda, se vuelve a hashear.
+    if (password) {
+        const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+        const [resultado] = await pool.query(
+            'UPDATE usuarios SET nombre = ?, usuario = ?, rol = ?, password_hash = ? WHERE id = ?',
+            [nombre, usuario, rol, passwordHash, id]
+        );
+        if (resultado.affectedRows === 0) throw new ApiError(404, 'Usuario no encontrado');
+    } else {
+        const [resultado] = await pool.query(
+            'UPDATE usuarios SET nombre = ?, usuario = ?, rol = ? WHERE id = ?',
+            [nombre, usuario, rol, id]
+        );
+        if (resultado.affectedRows === 0) throw new ApiError(404, 'Usuario no encontrado');
+    }
 
     return { id: Number(id), nombre, usuario, rol };
 }

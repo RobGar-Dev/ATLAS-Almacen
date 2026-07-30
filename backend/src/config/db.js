@@ -12,6 +12,10 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
+    // Evita que mysql2 convierta DATE/DATETIME a objetos Date de JS
+    // (que arrastran zona horaria) — mejor recibirlos como texto plano
+    // y formatearlos explícitamente donde se necesiten.
+    dateStrings: true,
 });
 
 module.exports = pool;
