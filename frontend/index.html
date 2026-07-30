@@ -33,7 +33,7 @@
                 <h2>Iniciar sesión</h2>
                 <p class="form-subtitle">Ingresa tus credenciales para continuar</p>
 
-                <form id="login-form" action="login.php" method="POST" novalidate>
+                <form id="login-form" novalidate>
                     <div class="field">
                         <label for="login-username">Usuario</label>
                         <input type="text" id="login-username" name="username" placeholder="Usuario" required
@@ -48,7 +48,6 @@
                 </form>
 
                 <div class="form-links">
-                    <a href="#" class="link-user" id="open-register">Registrar usuario</a>
                     <a href="#" class="link-user">Recuperar cuenta</a>
                 </div>
             </div>
@@ -56,29 +55,10 @@
 
     </main>
 
-    <!-- Modal: Registrar usuario -->
-    <div class="modal" id="register-modal" aria-hidden="true">
-        <div class="modal-overlay" data-close-modal></div>
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="register-title">
-            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
-            <h2 id="register-title">Registrar usuario</h2>
-            <form id="register-form" action="#" method="POST" novalidate>
-                <div class="field">
-                    <label for="register-username">Usuario</label>
-                    <input type="text" id="register-username" name="username" placeholder="Usuario" required
-                        autocomplete="username">
-                </div>
-                <div class="field">
-                    <label for="register-password">Contraseña</label>
-                    <input type="password" id="register-password" name="password" placeholder="Contraseña" required
-                        autocomplete="new-password">
-                </div>
-                <button type="submit" class="btn-primary">Registrar</button>
-            </form>
-        </div>
-    </div>
-
+    <!-- Contenedor de mensajes (toasts): Iniciando sesión... / Sesión iniciada / Hubo un error -->
     <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <script src="./js/config.js"></script>
     <script src="./js/index.js"></script>
 </body>
 
