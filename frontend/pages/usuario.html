@@ -112,7 +112,7 @@
             <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
             <h2 id="editar-producto-title">Editar producto</h2>
             <form id="editar-producto-form" novalidate>
-                <input type="hidden" id="editar-codigo-original" name="codigoOriginal">
+                <input type="hidden" id="editar-id-original" name="idOriginal">
                 <div class="field">
                     <label for="editar-codigo">Código</label>
                     <input type="text" id="editar-codigo" name="codigo" required>
@@ -160,7 +160,7 @@
             <h2 id="movimiento-title">Registrar movimiento</h2>
             <p class="modal-texto" id="movimiento-producto-nombre"></p>
             <form id="movimiento-form" novalidate>
-                <input type="hidden" id="movimiento-codigo" name="codigo">
+                <input type="hidden" id="movimiento-producto-id" name="productoId">
                 <div class="field">
                     <label for="movimiento-tipo">Tipo de movimiento</label>
                     <select id="movimiento-tipo" name="tipo" required>
@@ -199,6 +199,7 @@
     <!-- Contenedor de mensajes (toasts) -->
     <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
+    <script src="../js/config.js"></script>
     <script src="../js/usuario.js"></script>
 </body>
 
