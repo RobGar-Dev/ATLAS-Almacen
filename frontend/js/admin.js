@@ -108,6 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast(error.message || 'No se pudo actualizar el inventario', 'error');
                 }
             }
+
+            if (btn.dataset.section === 'movimientos') {
+                try {
+                    await cargarHistorialMovimientos();
+                    renderTablaMovimientos();
+                } catch (error) {
+                    showToast(error.message || 'No se pudo cargar el historial de movimientos', 'error');
+                }
+            }
         });
     });
 
@@ -688,6 +697,134 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
 
         showToast('Reporte exportado', 'success');
+    });
+
+    /* ============================================================
+       Movimientos (historial detallado — no confundir con
+       movimientosSemana, que solo alimenta la gráfica del dashboard)
+       ============================================================ */
+
+    let historialMovimientos = [];
+
+    const cuerpoTablaMovimientos = document.getElementById('cuerpo-tabla-movimientos');
+    const movimientosVacioRow = document.getElementById('movimientos-vacio-row');
+    const filtroMovimientos = document.getElementById('filtro-movimientos');
+    const filtroMovimientosTipo = document.getElementById('filtro-movimientos-tipo');
+
+    async function cargarHistorialMovimientos() {
+        const data = await apiFetch('/movimientos/historial');
+        historialMovimientos = data.movimientos;
+    }
+
+    // El backend regresa la fecha como texto plano 'YYYY-MM-DD HH:MM:SS'
+    // (gracias a dateStrings:true), así que se formatea sin pasar por Date.
+    function formatearFechaHora(fechaTexto) {
+        const [fecha, hora] = fechaTexto.split(' ');
+        const [anio, mes, dia] = fecha.split('-');
+        return `${dia}/${mes}/${anio} ${hora ? hora.slice(0, 5) : ''}`;
+    }
+
+    function obtenerMovimientosFiltrados() {
+        const busqueda = filtroMovimientos.value.trim().toLowerCase();
+        const tipo = filtroMovimientosTipo.value;
+
+        return historialMovimientos.filter((m) => {
+            const coincideBusqueda = !busqueda ||
+                m.producto_nombre.toLowerCase().includes(busqueda) ||
+                m.producto_codigo.toLowerCase().includes(busqueda) ||
+                m.usuario_nombre.toLowerCase().includes(busqueda);
+            const coincideTipo = !tipo || m.tipo === tipo;
+            return coincideBusqueda && coincideTipo;
+        });
+    }
+
+    function renderTablaMovimientos() {
+        cuerpoTablaMovimientos.querySelectorAll('tr:not(#movimientos-vacio-row)').forEach((row) => row.remove());
+
+        const lista = obtenerMovimientosFiltrados();
+
+        if (lista.length === 0) {
+            movimientosVacioRow.style.display = '';
+            movimientosVacioRow.querySelector('td').textContent = historialMovimientos.length === 0
+                ? 'Aún no hay movimientos registrados.'
+                : 'Ningún movimiento coincide con los filtros aplicados.';
+            return;
+        }
+
+        movimientosVacioRow.style.display = 'none';
+
+        lista.forEach((mov) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${formatearFechaHora(mov.fecha)}</td>
+                <td>${mov.producto_codigo} · ${mov.producto_nombre}</td>
+                <td><span class="badge badge-tipo-${mov.tipo}">${mov.tipo === 'entrada' ? 'Entrada' : 'Salida'}</span></td>
+                <td>${mov.cantidad}</td>
+                <td>${mov.motivo || '—'}</td>
+                <td>${mov.usuario_nombre}</td>
+            `;
+            cuerpoTablaMovimientos.appendChild(row);
+        });
+    }
+
+    [filtroMovimientos, filtroMovimientosTipo].forEach((el) => el.addEventListener('input', renderTablaMovimientos));
+
+    const actualizarMovimientosBtn = document.getElementById('actualizar-movimientos-btn');
+    actualizarMovimientosBtn.addEventListener('click', async () => {
+        actualizarMovimientosBtn.disabled = true;
+        const loadingToast = showToast('Actualizando movimientos...', 'info', 0);
+
+        try {
+            await cargarHistorialMovimientos();
+            renderTablaMovimientos();
+            hideToast(loadingToast);
+            showToast('Movimientos actualizados', 'success');
+        } catch (error) {
+            hideToast(loadingToast);
+            showToast(error.message || 'Ocurrió un error al actualizar los movimientos', 'error');
+        } finally {
+            actualizarMovimientosBtn.disabled = false;
+        }
+    });
+
+    const exportarMovimientosBtn = document.getElementById('exportar-movimientos-btn');
+
+    function generarCSVMovimientos(lista) {
+        const encabezados = ['Fecha y hora', 'Código', 'Producto', 'Tipo', 'Cantidad', 'Motivo', 'Usuario'];
+        const filas = lista.map((m) => [
+            m.fecha,
+            m.producto_codigo,
+            m.producto_nombre,
+            m.tipo === 'entrada' ? 'Entrada' : 'Salida',
+            m.cantidad,
+            m.motivo || '',
+            m.usuario_nombre,
+        ]);
+
+        return [encabezados, ...filas]
+            .map((fila) => fila.map((valor) => `"${String(valor).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+    }
+
+    exportarMovimientosBtn.addEventListener('click', () => {
+        if (historialMovimientos.length === 0) {
+            showToast('No hay movimientos para exportar', 'error');
+            return;
+        }
+
+        const csv = generarCSVMovimientos(obtenerMovimientosFiltrados());
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = `historial-movimientos-atlas-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        URL.revokeObjectURL(url);
+
+        showToast('Historial exportado', 'success');
     });
 
     /* ============================================================

@@ -28,6 +28,7 @@
         </div>
         <button type="button" class="btn-secondary" id="actualizar-btn">Actualizar</button>
         <button type="button" class="btn-secondary" id="exportar-btn">Exportar reporte</button>
+        <button type="button" class="btn-secondary" id="open-historial">Historial de movimientos</button>
         <div class="correo-compras">
             <button type="button" class="btn-secondary" id="open-correo-compras">Mandar correo a compras</button>
         </div>
@@ -189,10 +190,55 @@
             <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
             <h2 id="correo-compras-title">Enviar correo a compras</h2>
             <p class="asunto-correo"><strong>Asunto:</strong> Requisición de productos</p>
+
             <div class="cuerpo-producto" id="cuerpo-producto">
-                <!-- Aquí se genera dinámicamente la lista de productos con stock bajo -->
+                <!-- Aquí se genera dinámicamente la lista de productos con
+                     stock bajo, cada uno con su cantidad solicitada editable -->
             </div>
-            <button type="button" class="btn-primary" id="enviar-correo-btn">Enviar correo</button>
+
+            <form id="correo-compras-form" novalidate>
+                <div class="field">
+                    <label for="correo-motivo">Motivo</label>
+                    <textarea id="correo-motivo" name="motivo" rows="3"
+                        placeholder="Ej. reposición programada, proyecto urgente..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="correo-urgencia">Nivel de urgencia</label>
+                    <select id="correo-urgencia" name="urgencia" required>
+                        <option value="Programable">Programable</option>
+                        <option value="Urgente">Urgente</option>
+                        <option value="Muy urgente">Muy urgente</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" id="enviar-correo-btn">Enviar correo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Historial de movimientos -->
+    <div class="modal" id="historial-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content modal-content-lg" role="dialog" aria-modal="true" aria-labelledby="historial-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="historial-title">Historial de movimientos</h2>
+            <table class="productos-registrados tabla-historial">
+                <thead>
+                    <tr>
+                        <th>Fecha y hora</th>
+                        <th>Producto</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Motivo</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-historial">
+                    <tr class="tabla-vacio" id="historial-vacio-row">
+                        <td colspan="6">Cargando historial...</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" class="btn-secondary" id="exportar-historial-btn">Exportar historial</button>
         </div>
     </div>
 

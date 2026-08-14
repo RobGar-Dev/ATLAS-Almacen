@@ -363,6 +363,10 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+.tabla-historial {
+    margin-bottom: var(--space-4);
+}
+
 .productos-registrados thead {
     background: var(--color-bg-alt);
 }
@@ -429,6 +433,28 @@ body {
 .stock-bajo {
     color: var(--rose-600);
     background: var(--color-danger-soft);
+}
+
+/* Insignia de tipo de movimiento: entrada (verde) / salida (coral) */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+}
+
+.badge-tipo-entrada {
+    color: #0e7a52;
+    background: var(--color-success-soft);
+}
+
+.badge-tipo-salida {
+    color: var(--coral-500);
+    background: var(--coral-100);
 }
 
 /* Columna de acciones por fila */
@@ -504,6 +530,10 @@ body {
     width: min(90vw, 360px);
 }
 
+.modal-content-lg {
+    width: min(92vw, 760px);
+}
+
 @keyframes modal-in {
     from {
         opacity: 0;
@@ -573,7 +603,8 @@ body {
 }
 
 .modal-content .field input,
-.modal-content .field select {
+.modal-content .field select,
+.modal-content .field textarea {
     width: 100%;
     padding: var(--space-3) var(--space-4);
     font-family: var(--font-body);
@@ -582,12 +613,14 @@ body {
     background: var(--color-bg-alt);
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-md);
+    resize: vertical;
     transition: border-color var(--duration-fast) var(--ease-standard),
         box-shadow var(--duration-fast) var(--ease-standard);
 }
 
 .modal-content .field input:focus,
-.modal-content .field select:focus {
+.modal-content .field select:focus,
+.modal-content .field textarea:focus {
     outline: none;
     border-color: var(--color-accent);
     box-shadow: var(--shadow-focus);
@@ -620,9 +653,45 @@ body {
 
 .cuerpo-producto .item-correo {
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    gap: var(--space-3);
     font-size: var(--fs-sm);
     color: var(--color-text);
+}
+
+.cuerpo-producto .item-correo .item-correo-nombre {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cuerpo-producto .item-correo .item-correo-cantidad {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+    font-size: var(--fs-xs);
+    color: var(--color-text-subtle);
+}
+
+.cuerpo-producto .item-correo input[type="number"] {
+    width: 72px;
+    padding: var(--space-1) var(--space-2);
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+}
+
+.cuerpo-producto .item-correo input[type="number"]:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-focus);
 }
 
 .cuerpo-producto .item-vacio {

@@ -21,4 +21,10 @@ const listarUltimosDias = asyncHandler(async (req, res) => {
     res.json({ success: true, movimientos });
 });
 
-module.exports = { registrar, listarUltimosDias };
+const listarHistorial = asyncHandler(async (req, res) => {
+    const { productoId, limite } = req.query;
+    const movimientos = await movimientosService.listarHistorial({ productoId, limite });
+    res.json({ success: true, movimientos });
+});
+
+module.exports = { registrar, listarUltimosDias, listarHistorial };

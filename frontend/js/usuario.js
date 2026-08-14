@@ -507,8 +507,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const correoComprasModal = document.getElementById('correo-compras-modal');
     const openCorreoComprasBtn = document.getElementById('open-correo-compras');
+    const correoComprasForm = document.getElementById('correo-compras-form');
     const enviarCorreoBtn = document.getElementById('enviar-correo-btn');
     const cuerpoProductoEl = document.getElementById('cuerpo-producto');
+
+    // Sugerencia de cantidad a pedir: lo que falta para llegar a stock
+    // medio, con un mínimo de 5 — el usuario puede editarla libremente.
+    function sugerirCantidad(producto) {
+        return Math.max(STOCK_MEDIO_LIMITE - producto.stock, 5);
+    }
 
     function renderListaCorreo() {
         const productosStockBajo = productos.filter((p) => obtenerNivelStock(p.stock) === 'bajo');
@@ -523,28 +530,48 @@ document.addEventListener('DOMContentLoaded', () => {
         cuerpoProductoEl.innerHTML = productosStockBajo
             .map((p) => `
                 <div class="item-correo">
-                    <span>${p.codigo} · ${p.nombre}</span>
-                    <span>${p.stock} pzas</span>
+                    <span class="item-correo-nombre">${p.codigo} · ${p.nombre} (stock: ${p.stock})</span>
+                    <label class="item-correo-cantidad">
+                        Cantidad
+                        <input type="number" min="1" step="1" value="${sugerirCantidad(p)}" data-id="${p.id}">
+                    </label>
                 </div>
             `)
             .join('');
     }
 
     openCorreoComprasBtn.addEventListener('click', () => {
+        correoComprasForm.reset(); // limpia motivo y regresa urgencia a "Programable"
         renderListaCorreo();
         openModal(correoComprasModal);
     });
 
-    enviarCorreoBtn.addEventListener('click', async () => {
+    correoComprasForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
         enviarCorreoBtn.disabled = true;
         const loadingToast = showToast('Enviando correo...', 'info', 0);
 
-        const productosStockBajo = productos.filter((p) => obtenerNivelStock(p.stock) === 'bajo');
+        // Las cantidades no viven dentro del <form> (se regeneran aparte
+        // en cuerpoProductoEl cada vez que se abre el modal), así que se
+        // leen directo de los inputs en vez de por FormData.
+        const productosSolicitados = Array.from(cuerpoProductoEl.querySelectorAll('input[type="number"]'))
+            .map((input) => {
+                const producto = productos.find((p) => p.id === Number(input.dataset.id));
+                return {
+                    codigo: producto.codigo,
+                    nombre: producto.nombre,
+                    cantidadSolicitada: Number(input.value),
+                };
+            });
+
+        const formData = new FormData(correoComprasForm);
+        const { motivo, urgencia } = Object.fromEntries(formData.entries());
 
         try {
             await apiFetch('/correo/compras', {
                 method: 'POST',
-                body: JSON.stringify({ productos: productosStockBajo }),
+                body: JSON.stringify({ productos: productosSolicitados, motivo, urgencia }),
             });
 
             hideToast(loadingToast);
@@ -557,6 +584,106 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             enviarCorreoBtn.disabled = false;
         }
+    });
+
+    /* ============================================================
+       Historial de movimientos
+       ============================================================ */
+
+    let historial = [];
+
+    const historialModal = document.getElementById('historial-modal');
+    const openHistorialBtn = document.getElementById('open-historial');
+    const cuerpoHistorial = document.getElementById('cuerpo-historial');
+    const historialVacioRow = document.getElementById('historial-vacio-row');
+    const exportarHistorialBtn = document.getElementById('exportar-historial-btn');
+
+    async function cargarHistorial() {
+        const data = await apiFetch('/movimientos/historial');
+        historial = data.movimientos;
+    }
+
+    // El backend regresa la fecha como texto plano 'YYYY-MM-DD HH:MM:SS'
+    // (gracias a dateStrings:true), así que se formatea sin pasar por Date.
+    function formatearFechaHora(fechaTexto) {
+        const [fecha, hora] = fechaTexto.split(' ');
+        const [anio, mes, dia] = fecha.split('-');
+        return `${dia}/${mes}/${anio} ${hora ? hora.slice(0, 5) : ''}`;
+    }
+
+    function renderHistorial() {
+        cuerpoHistorial.querySelectorAll('tr:not(#historial-vacio-row)').forEach((row) => row.remove());
+
+        if (historial.length === 0) {
+            historialVacioRow.style.display = '';
+            historialVacioRow.querySelector('td').textContent = 'Aún no hay movimientos registrados.';
+            return;
+        }
+
+        historialVacioRow.style.display = 'none';
+
+        historial.forEach((mov) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${formatearFechaHora(mov.fecha)}</td>
+                <td>${mov.producto_codigo} · ${mov.producto_nombre}</td>
+                <td><span class="badge badge-tipo-${mov.tipo}">${mov.tipo === 'entrada' ? 'Entrada' : 'Salida'}</span></td>
+                <td>${mov.cantidad}</td>
+                <td>${mov.motivo || '—'}</td>
+                <td>${mov.usuario_nombre}</td>
+            `;
+            cuerpoHistorial.appendChild(row);
+        });
+    }
+
+    openHistorialBtn.addEventListener('click', async () => {
+        openModal(historialModal);
+        historialVacioRow.querySelector('td').textContent = 'Cargando historial...';
+
+        try {
+            await cargarHistorial();
+            renderHistorial();
+        } catch (error) {
+            showToast(error.message || 'No se pudo cargar el historial', 'error');
+        }
+    });
+
+    function generarCSVHistorial(lista) {
+        const encabezados = ['Fecha y hora', 'Código', 'Producto', 'Tipo', 'Cantidad', 'Motivo', 'Usuario'];
+        const filas = lista.map((m) => [
+            m.fecha,
+            m.producto_codigo,
+            m.producto_nombre,
+            m.tipo === 'entrada' ? 'Entrada' : 'Salida',
+            m.cantidad,
+            m.motivo || '',
+            m.usuario_nombre,
+        ]);
+
+        return [encabezados, ...filas]
+            .map((fila) => fila.map((valor) => `"${String(valor).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+    }
+
+    exportarHistorialBtn.addEventListener('click', () => {
+        if (historial.length === 0) {
+            showToast('No hay historial para exportar', 'error');
+            return;
+        }
+
+        const csv = generarCSVHistorial(historial);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = `historial-movimientos-atlas-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        URL.revokeObjectURL(url);
+
+        showToast('Historial exportado', 'success');
     });
 
     /* ============================================================

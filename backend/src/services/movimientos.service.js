@@ -51,4 +51,41 @@ async function listarUltimosDias(dias = 7) {
     return rows;
 }
 
-module.exports = { registrar, listarUltimosDias };
+// Historial detallado (fecha y hora, producto, tipo, cantidad, motivo,
+// quién lo registró) — para el modal de usuario.html y la sección de
+// movimientos de admin.html. Se puede filtrar por producto opcionalmente.
+async function listarHistorial({ productoId, limite = 200 } = {}) {
+    const condiciones = [];
+    const valores = [];
+
+    if (productoId) {
+        condiciones.push('m.producto_id = ?');
+        valores.push(productoId);
+    }
+
+    const whereClause = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
+    valores.push(Number(limite) || 200);
+
+    const [rows] = await pool.query(
+        `SELECT
+            m.id,
+            m.tipo,
+            m.cantidad,
+            m.motivo,
+            m.fecha,
+            p.codigo AS producto_codigo,
+            p.nombre AS producto_nombre,
+            u.nombre AS usuario_nombre
+         FROM movimientos m
+         JOIN productos p ON p.id = m.producto_id
+         JOIN usuarios u ON u.id = m.usuario_id
+         ${whereClause}
+         ORDER BY m.fecha DESC
+         LIMIT ?`,
+        valores
+    );
+
+    return rows;
+}
+
+module.exports = { registrar, listarUltimosDias, listarHistorial };

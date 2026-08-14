@@ -34,6 +34,9 @@
                 <button type="button" class="nav-item" data-section="inventario">
                     Inventario
                 </button>
+                <button type="button" class="nav-item" data-section="movimientos">
+                    Movimientos
+                </button>
             </nav>
 
             <div class="sidebar-footer">
@@ -172,6 +175,52 @@
                     <tbody id="cuerpo-tabla-inventario">
                         <tr class="tabla-vacio" id="inventario-vacio-row">
                             <td colspan="4">Cargando inventario...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- ===== Movimientos ===== -->
+            <section class="admin-section" id="section-movimientos">
+                <header class="admin-header">
+                    <div>
+                        <h1>Movimientos</h1>
+                        <p class="admin-subtitle">Historial de entradas y salidas de inventario</p>
+                    </div>
+                </header>
+
+                <div class="section-toolbar">
+                    <div class="field field-inline field-search">
+                        <label for="filtro-movimientos" class="sr-only">Buscar por producto o usuario</label>
+                        <input type="text" id="filtro-movimientos" placeholder="Producto o usuario...">
+                    </div>
+                    <div class="field field-inline">
+                        <label for="filtro-movimientos-tipo" class="sr-only">Filtrar por tipo de movimiento</label>
+                        <select id="filtro-movimientos-tipo">
+                            <option value="">Todos los tipos</option>
+                            <option value="entrada">Entradas</option>
+                            <option value="salida">Salidas</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-secondary" id="actualizar-movimientos-btn">Actualizar</button>
+                    <button type="button" class="btn-secondary" id="exportar-movimientos-btn">Exportar
+                        historial</button>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha y hora</th>
+                            <th>Producto</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Motivo</th>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-movimientos">
+                        <tr class="tabla-vacio" id="movimientos-vacio-row">
+                            <td colspan="6">Cargando movimientos...</td>
                         </tr>
                     </tbody>
                 </table>

@@ -138,8 +138,7 @@
     }
 }
 
-html,
-body {
+html, body {
     height: 100%;
 }
 
@@ -216,7 +215,7 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-        color var(--duration-fast) var(--ease-standard);
+                color var(--duration-fast) var(--ease-standard);
 }
 
 .nav-item:hover {
@@ -262,8 +261,8 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-        color var(--duration-fast) var(--ease-standard),
-        border-color var(--duration-fast) var(--ease-standard);
+                color var(--duration-fast) var(--ease-standard),
+                border-color var(--duration-fast) var(--ease-standard);
 }
 
 .btn-logout:hover {
@@ -451,7 +450,7 @@ body {
     border: var(--border-width) solid var(--color-border-strong);
     border-radius: var(--radius-sm);
     transition: border-color var(--duration-fast) var(--ease-standard),
-        box-shadow var(--duration-fast) var(--ease-standard);
+                box-shadow var(--duration-fast) var(--ease-standard);
 }
 
 .field-inline input:focus,
@@ -475,9 +474,9 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-        transform var(--duration-fast) var(--ease-standard),
-        border-color var(--duration-fast) var(--ease-standard),
-        color var(--duration-fast) var(--ease-standard);
+                transform var(--duration-fast) var(--ease-standard),
+                border-color var(--duration-fast) var(--ease-standard),
+                color var(--duration-fast) var(--ease-standard);
 }
 
 .btn-primary {
@@ -604,8 +603,8 @@ body {
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-        color var(--duration-fast) var(--ease-standard),
-        border-color var(--duration-fast) var(--ease-standard);
+                color var(--duration-fast) var(--ease-standard),
+                border-color var(--duration-fast) var(--ease-standard);
 }
 
 .btn-icono:hover {
@@ -649,6 +648,16 @@ body {
 .badge-estado-inactivo {
     color: var(--color-text-subtle);
     background: var(--mist-100);
+}
+
+.badge-tipo-entrada {
+    color: #0e7a52;
+    background: var(--color-success-soft);
+}
+
+.badge-tipo-salida {
+    color: var(--coral-500);
+    background: var(--coral-100);
 }
 
 .stock-alto {
@@ -708,15 +717,8 @@ body {
 }
 
 @keyframes modal-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px) scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-content h2 {
@@ -786,7 +788,7 @@ body {
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-md);
     transition: border-color var(--duration-fast) var(--ease-standard),
-        box-shadow var(--duration-fast) var(--ease-standard);
+                box-shadow var(--duration-fast) var(--ease-standard);
 }
 
 .modal-content .field input:focus,
@@ -829,7 +831,7 @@ body {
     opacity: 0;
     transform: translateX(16px);
     transition: opacity var(--duration-base) var(--ease-standard),
-        transform var(--duration-base) var(--ease-standard);
+                transform var(--duration-base) var(--ease-standard);
 }
 
 .toast-visible {
