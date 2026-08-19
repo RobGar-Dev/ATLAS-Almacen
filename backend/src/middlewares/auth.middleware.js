@@ -13,7 +13,11 @@ function verificarToken(req, res, next) {
     const token = authHeader.split(' ')[1];
 
     try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        // Sin "algorithms" explícito, jwt.verify acepta cualquier
+        // algoritmo que el propio token declare en su header — eso abre
+        // la puerta a ataques de "algorithm confusion". Se fija HS256,
+        // que es el único que usa este backend para firmar.
+        const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
         req.usuario = payload; // { id, usuario, rol }
         next();
     } catch (error) {

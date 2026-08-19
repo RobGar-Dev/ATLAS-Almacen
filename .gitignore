@@ -1,5 +1,9 @@
-node_modules/
+# Variables de entorno de docker-compose — nunca subir credenciales reales
 .env
-npm-debug.log
-*.log
+
+# Node (por si el backend se instala fuera de Docker también)
+node_modules/
+
+# Sistema
 .DS_Store
+Thumbs.db

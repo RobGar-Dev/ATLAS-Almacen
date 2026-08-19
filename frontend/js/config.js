@@ -4,14 +4,23 @@
    cada HTML, ya que expone la constante global API_BASE_URL.
    ============================================================ */
 
-// Cuando despliegues a producción, cambia esto por la URL real
-// de tu servidor (ej. "https://api.tudominio.com/api").
-const API_BASE_URL = 'http://localhost:4000/api';
+// En desarrollo local (Live Server en :5500) el frontend y el backend
+// viven en orígenes distintos, así que hace falta la URL completa.
+// En producción, Caddy sirve el frontend y hace de proxy de /api en el
+// MISMO origen — ahí basta una ruta relativa, y de paso ni siquiera
+// hace falta CORS. Se detecta automáticamente para no tener que tocar
+// este archivo a mano en cada despliegue.
+const API_BASE_URL = (() => {
+    const esDevLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+        && window.location.port === '5500';
+
+    return esDevLocal ? 'http://localhost:4000/api' : '/api';
+})();
 
 // Llaves usadas en localStorage para la sesión, centralizadas aquí
 // para que index.js, usuario.js y admin.js siempre coincidan.
 const ATLAS_STORAGE_KEYS = {
     token: 'atlas_token',
-    usuario: 'atlas_usuario',
+    nombre: 'atlas_usuario',
     rol: 'atlas_rol',
 };

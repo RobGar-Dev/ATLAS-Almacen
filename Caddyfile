@@ -1,0 +1,31 @@
+# Caddy resuelve HTTPS automáticamente contra Let's Encrypt en cuanto
+# detecta un dominio real (variable DOMAIN) apuntando a este servidor.
+# Para pruebas locales sin dominio, define DOMAIN=:80 en tu .env — Caddy
+# escuchará en HTTP plano sin intentar pedir un certificado.
+{$DOMAIN} {
+
+    encode gzip
+
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        # Quita la cabecera "Server: Caddy" — no hay razón para anunciar
+        # el software del proxy a quien esté reconociendo el sitio.
+        -Server
+    }
+
+    # Todo lo que empiece con /api/ va al backend por su nombre de
+    # servicio dentro de la red interna de Docker — nunca se expone
+    # directamente al host ni a internet.
+    handle /api/* {
+        reverse_proxy backend:4000
+    }
+
+    # El resto son los archivos estáticos del frontend.
+    handle {
+        root * /srv
+        file_server
+    }
+}

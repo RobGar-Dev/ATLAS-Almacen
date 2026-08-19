@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const ApiError = require('../utils/ApiError');
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = 12; // 10 es el mínimo razonable en 2026; 12 da más margen sin ser perceptible al usuario
 
 async function listar() {
     const [rows] = await pool.query(

@@ -15,7 +15,7 @@ async function seed() {
         process.exit(0);
     }
 
-    const passwordHash = await bcrypt.hash(PASSWORD_ADMIN, 10);
+    const passwordHash = await bcrypt.hash(PASSWORD_ADMIN, 12);
 
     await pool.query(
         'INSERT INTO usuarios (nombre, usuario, password_hash, rol, activo) VALUES (?, ?, ?, ?, TRUE)',
