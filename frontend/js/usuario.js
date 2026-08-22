@@ -542,15 +542,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     openCorreoComprasBtn.addEventListener('click', () => {
         correoComprasForm.reset(); // limpia motivo y regresa urgencia a "Programable"
+        document.getElementById('correo-destino').value = CORREO_COMPRAS_DESTINO_DEFAULT;
         renderListaCorreo();
         openModal(correoComprasModal);
     });
 
-    correoComprasForm.addEventListener('submit', async (event) => {
+    correoComprasForm.addEventListener('submit', (event) => {
         event.preventDefault();
-
-        enviarCorreoBtn.disabled = true;
-        const loadingToast = showToast('Enviando correo...', 'info', 0);
 
         // Las cantidades no viven dentro del <form> (se regeneran aparte
         // en cuerpoProductoEl cada vez que se abre el modal), así que se
@@ -566,24 +564,37 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         const formData = new FormData(correoComprasForm);
-        const { motivo, urgencia } = Object.fromEntries(formData.entries());
+        const { destino, motivo, urgencia } = Object.fromEntries(formData.entries());
 
-        try {
-            await apiFetch('/correo/compras', {
-                method: 'POST',
-                body: JSON.stringify({ productos: productosSolicitados, motivo, urgencia }),
-            });
+        // Se arma el correo y se abre con el cliente que el usuario tenga
+        // configurado (Outlook, Gmail, etc.) — así sale de su propia
+        // cuenta real, en vez de simularse desde el servidor.
+        const nombreUsuario = localStorage.getItem(ATLAS_STORAGE_KEYS.nombre) || 'Usuario';
+        const asunto = `Requisición de productos [${urgencia}]`;
+        const listaProductos = productosSolicitados
+            .map((p) => `- ${p.codigo} · ${p.nombre}: ${p.cantidadSolicitada} unidades`)
+            .join('\r\n');
+        const cuerpo =
+            `Solicitado por: ${nombreUsuario}\r\n` +
+            `Nivel de urgencia: ${urgencia}\r\n` +
+            `Motivo: ${motivo || '(sin especificar)'}\r\n\r\n` +
+            `Productos solicitados:\r\n${listaProductos}`;
 
-            hideToast(loadingToast);
-            showToast('Correo enviado correctamente', 'success');
-            closeModal(correoComprasModal);
+        const enlaceMailto = `mailto:${destino}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+        window.location.href = enlaceMailto;
 
-        } catch (error) {
-            hideToast(loadingToast);
-            showToast(error.message || 'Ocurrió un problema con el envío', 'error');
-        } finally {
-            enviarCorreoBtn.disabled = false;
-        }
+        showToast('Se abrió tu cliente de correo — revisa el mensaje y da clic en enviar', 'success', 4500);
+        closeModal(correoComprasModal);
+
+        // Registro best-effort en el backend (para que quede historial en
+        // el sistema). No bloquea la apertura del correo ni muestra error
+        // al usuario si falla — lo importante ya ocurrió del lado suyo.
+        apiFetch('/correo/compras', {
+            method: 'POST',
+            body: JSON.stringify({ productos: productosSolicitados, motivo, urgencia }),
+        }).catch((error) => {
+            console.warn('No se pudo registrar la requisición en el backend:', error.message);
+        });
     });
 
     /* ============================================================

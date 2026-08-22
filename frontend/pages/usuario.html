@@ -198,6 +198,10 @@
 
             <form id="correo-compras-form" novalidate>
                 <div class="field">
+                    <label for="correo-destino">Correo de destino</label>
+                    <input type="email" id="correo-destino" name="destino" required>
+                </div>
+                <div class="field">
                     <label for="correo-motivo">Motivo</label>
                     <textarea id="correo-motivo" name="motivo" rows="3"
                         placeholder="Ej. reposición programada, proyecto urgente..."></textarea>
@@ -210,7 +214,7 @@
                         <option value="Muy urgente">Muy urgente</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-primary" id="enviar-correo-btn">Enviar correo</button>
+                <button type="submit" class="btn-primary" id="enviar-correo-btn">Abrir correo para enviar</button>
             </form>
         </div>
     </div>
