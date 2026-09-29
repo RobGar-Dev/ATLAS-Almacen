@@ -30,8 +30,8 @@
         <button type="button" class="btn-secondary" id="actualizar-btn">Actualizar</button>
         <button type="button" class="btn-secondary" id="exportar-btn">Exportar reporte</button>
         <button type="button" class="btn-secondary" id="open-historial">Historial de movimientos</button>
-        <div class="correo-compras">
-            <button type="button" class="btn-secondary" id="open-correo-compras">Mandar correo a compras</button>
+        <div class="solped-trigger">
+            <button type="button" class="btn-secondary" id="open-solped">Solicitud de pedido "SolPed"</button>
         </div>
     </section>
 
@@ -184,39 +184,39 @@
         </div>
     </div>
 
-    <!-- Modal: Enviar correo a compras -->
-    <div class="modal" id="correo-compras-modal" aria-hidden="true">
+    <!-- Modal: Crear solicitud de pedido (SOLPED) -->
+    <div class="modal" id="solped-modal" aria-hidden="true">
         <div class="modal-overlay" data-close-modal></div>
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="correo-compras-title">
+        <div class="modal-content modal-content-lg" role="dialog" aria-modal="true" aria-labelledby="solped-title">
             <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
-            <h2 id="correo-compras-title">Enviar correo a compras</h2>
-            <p class="asunto-correo"><strong>Asunto:</strong> Requisición de productos</p>
+            <h2 id="solped-title">Crear solicitud de pedido</h2>
+            <p class="modal-texto">
+                Los productos con stock bajo vienen marcados por defecto — puedes agregar o quitar cualquiera,
+                y ajustar cantidad y urgencia por producto.
+            </p>
 
-            <div class="cuerpo-producto" id="cuerpo-producto">
-                <!-- Aquí se genera dinámicamente la lista de productos con
-                     stock bajo, cada uno con su cantidad solicitada editable -->
+            <div class="modal-acciones modal-acciones-start">
+                <button type="button" class="btn-secondary" id="seleccionar-todos-solped-btn">Seleccionar todos los productos</button>
             </div>
 
-            <form id="correo-compras-form" novalidate>
-                <div class="field">
-                    <label for="correo-destino">Correo de destino</label>
-                    <input type="email" id="correo-destino" name="destino" required>
-                </div>
-                <div class="field">
-                    <label for="correo-motivo">Motivo</label>
-                    <textarea id="correo-motivo" name="motivo" rows="3"
-                        placeholder="Ej. reposición programada, proyecto urgente..."></textarea>
-                </div>
-                <div class="field">
-                    <label for="correo-urgencia">Nivel de urgencia</label>
-                    <select id="correo-urgencia" name="urgencia" required>
-                        <option value="Programable">Programable</option>
-                        <option value="Urgente">Urgente</option>
-                        <option value="Muy urgente">Muy urgente</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-primary" id="enviar-correo-btn">Abrir correo para enviar</button>
-            </form>
+            <table class="productos-registrados tabla-historial">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Producto</th>
+                        <th>Stock actual</th>
+                        <th>Cantidad a solicitar</th>
+                        <th>Nivel de urgencia</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-solped">
+                    <tr class="tabla-vacio" id="solped-vacio-row">
+                        <td colspan="5">Cargando productos...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button type="button" class="btn-primary" id="confirmar-solped-btn">Enviar solicitud</button>
         </div>
     </div>
 

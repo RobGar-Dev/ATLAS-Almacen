@@ -43,3 +43,27 @@ CREATE TABLE IF NOT EXISTS movimientos (
 -- Índices útiles para los filtros y el dashboard
 CREATE INDEX idx_productos_categoria ON productos (categoria);
 CREATE INDEX idx_movimientos_fecha ON movimientos (fecha);
+
+-- ---------- Solicitudes de pedido (SOLPED) ----------
+-- Un vendedor arma una solicitud con uno o más productos; el admin la
+-- revisa después (esa vista de admin se agrega en un paso posterior).
+CREATE TABLE IF NOT EXISTS solicitudes_pedido (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    estado ENUM('pendiente', 'aprobada', 'rechazada') NOT NULL DEFAULT 'pendiente',
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE IF NOT EXISTS solicitud_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    solicitud_id INT NOT NULL,
+    producto_id INT NOT NULL,
+    cantidad INT NOT NULL,
+    urgencia ENUM('Muy urgente', 'Urgente', 'Programable') NOT NULL,
+    FOREIGN KEY (solicitud_id) REFERENCES solicitudes_pedido(id) ON DELETE CASCADE,
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+);
+
+CREATE INDEX idx_solicitudes_estado ON solicitudes_pedido (estado);
+CREATE INDEX idx_solicitud_items_solicitud ON solicitud_items (solicitud_id);

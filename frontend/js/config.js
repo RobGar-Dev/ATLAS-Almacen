@@ -20,7 +20,7 @@ const API_BASE_URL = (() => {
 // Correo al que se dirige la requisición de compras por defecto — el
 // vendedor puede cambiarlo en el momento desde el modal, esto solo
 // precarga el campo. Cámbialo por el correo real de tu área de compras.
-const CORREO_COMPRAS_DESTINO_DEFAULT = 'compras@tuempresa.com';
+// const CORREO_COMPRAS_DESTINO_DEFAULT = 'compras@tuempresa.com';
 
 // Llaves usadas en localStorage para la sesión, centralizadas aquí
 // para que index.js, usuario.js y admin.js siempre coincidan.

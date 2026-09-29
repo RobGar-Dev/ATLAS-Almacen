@@ -502,99 +502,121 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ============================================================
-       Modal: Enviar correo a compras
+       Solicitud de pedido (SOLPED) — se guarda en el sistema para
+       que el administrador la revise (la vista de admin se agrega
+       en un paso posterior; por ahora esto ya la deja registrada).
        ============================================================ */
 
-    const correoComprasModal = document.getElementById('correo-compras-modal');
-    const openCorreoComprasBtn = document.getElementById('open-correo-compras');
-    const correoComprasForm = document.getElementById('correo-compras-form');
-    const enviarCorreoBtn = document.getElementById('enviar-correo-btn');
-    const cuerpoProductoEl = document.getElementById('cuerpo-producto');
+    const solpedModal = document.getElementById('solped-modal');
+    const openSolpedBtn = document.getElementById('open-solped');
+    const cuerpoSolped = document.getElementById('cuerpo-solped');
+    const solpedVacioRow = document.getElementById('solped-vacio-row');
+    const seleccionarTodosSolpedBtn = document.getElementById('seleccionar-todos-solped-btn');
+    const confirmarSolpedBtn = document.getElementById('confirmar-solped-btn');
 
-    // Sugerencia de cantidad a pedir: lo que falta para llegar a stock
-    // medio, con un mínimo de 5 — el usuario puede editarla libremente.
-    function sugerirCantidad(producto) {
+    // Misma sugerencia que usábamos antes: lo que falta para llegar a
+    // stock medio, con un mínimo de 5 — editable por fila.
+    function sugerirCantidadSolped(producto) {
         return Math.max(STOCK_MEDIO_LIMITE - producto.stock, 5);
     }
 
-    function renderListaCorreo() {
-        const productosStockBajo = productos.filter((p) => obtenerNivelStock(p.stock) === 'bajo');
+    function renderSolped() {
+        cuerpoSolped.querySelectorAll('tr:not(#solped-vacio-row)').forEach((row) => row.remove());
 
-        if (productosStockBajo.length === 0) {
-            cuerpoProductoEl.innerHTML = '<span class="item-vacio">No hay productos con stock bajo por ahora.</span>';
-            enviarCorreoBtn.disabled = true;
+        if (productos.length === 0) {
+            solpedVacioRow.style.display = '';
+            solpedVacioRow.querySelector('td').textContent = 'Aún no hay productos registrados.';
             return;
         }
 
-        enviarCorreoBtn.disabled = false;
-        cuerpoProductoEl.innerHTML = productosStockBajo
-            .map((p) => `
-                <div class="item-correo">
-                    <span class="item-correo-nombre">${p.codigo} · ${p.nombre} (stock: ${p.stock})</span>
-                    <label class="item-correo-cantidad">
-                        Cantidad
-                        <input type="number" min="1" step="1" value="${sugerirCantidad(p)}" data-id="${p.id}">
-                    </label>
-                </div>
-            `)
-            .join('');
+        solpedVacioRow.style.display = 'none';
+
+        productos.forEach((producto) => {
+            const nivel = obtenerNivelStock(producto.stock);
+            // Los de stock bajo vienen premarcados — es lo más probable
+            // que el vendedor quiera pedir — pero cualquiera es elegible.
+            const marcadoPorDefecto = nivel === 'bajo';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="checkbox" class="solped-check" data-id="${producto.id}" ${marcadoPorDefecto ? 'checked' : ''}></td>
+                <td>${producto.codigo} · ${producto.nombre}</td>
+                <td>${producto.stock}</td>
+                <td>
+                    <input type="number" min="1" step="1" class="solped-cantidad" data-id="${producto.id}"
+                        value="${sugerirCantidadSolped(producto)}" ${marcadoPorDefecto ? '' : 'disabled'}>
+                </td>
+                <td>
+                    <select class="solped-urgencia" data-id="${producto.id}" ${marcadoPorDefecto ? '' : 'disabled'}>
+                        <option value="Programable">Programable</option>
+                        <option value="Urgente" ${nivel === 'bajo' ? 'selected' : ''}>Urgente</option>
+                        <option value="Muy urgente">Muy urgente</option>
+                    </select>
+                </td>
+            `;
+            cuerpoSolped.appendChild(row);
+        });
     }
 
-    openCorreoComprasBtn.addEventListener('click', () => {
-        correoComprasForm.reset(); // limpia motivo y regresa urgencia a "Programable"
-        document.getElementById('correo-destino').value = CORREO_COMPRAS_DESTINO_DEFAULT;
-        renderListaCorreo();
-        openModal(correoComprasModal);
+    // Al (des)marcar una fila, se habilita/deshabilita su cantidad y
+    // urgencia — así solo se manda lo que de verdad quedó seleccionado.
+    cuerpoSolped.addEventListener('change', (event) => {
+        if (!event.target.classList.contains('solped-check')) return;
+
+        const fila = event.target.closest('tr');
+        fila.querySelector('.solped-cantidad').disabled = !event.target.checked;
+        fila.querySelector('.solped-urgencia').disabled = !event.target.checked;
     });
 
-    correoComprasForm.addEventListener('submit', (event) => {
-        event.preventDefault();
+    openSolpedBtn.addEventListener('click', () => {
+        renderSolped();
+        openModal(solpedModal);
+    });
 
-        // Las cantidades no viven dentro del <form> (se regeneran aparte
-        // en cuerpoProductoEl cada vez que se abre el modal), así que se
-        // leen directo de los inputs en vez de por FormData.
-        const productosSolicitados = Array.from(cuerpoProductoEl.querySelectorAll('input[type="number"]'))
-            .map((input) => {
-                const producto = productos.find((p) => p.id === Number(input.dataset.id));
+    seleccionarTodosSolpedBtn.addEventListener('click', () => {
+        cuerpoSolped.querySelectorAll('.solped-check').forEach((checkbox) => {
+            checkbox.checked = true;
+            const fila = checkbox.closest('tr');
+            fila.querySelector('.solped-cantidad').disabled = false;
+            fila.querySelector('.solped-urgencia').disabled = false;
+        });
+    });
+
+    confirmarSolpedBtn.addEventListener('click', async () => {
+        const items = Array.from(cuerpoSolped.querySelectorAll('.solped-check:checked'))
+            .map((checkbox) => {
+                const fila = checkbox.closest('tr');
                 return {
-                    codigo: producto.codigo,
-                    nombre: producto.nombre,
-                    cantidadSolicitada: Number(input.value),
+                    productoId: Number(checkbox.dataset.id),
+                    cantidad: Number(fila.querySelector('.solped-cantidad').value),
+                    urgencia: fila.querySelector('.solped-urgencia').value,
                 };
             });
 
-        const formData = new FormData(correoComprasForm);
-        const { destino, motivo, urgencia } = Object.fromEntries(formData.entries());
+        if (items.length === 0) {
+            showToast('Selecciona al menos un producto', 'error');
+            return;
+        }
 
-        // Se arma el correo y se abre con el cliente que el usuario tenga
-        // configurado (Outlook, Gmail, etc.) — así sale de su propia
-        // cuenta real, en vez de simularse desde el servidor.
-        const nombreUsuario = localStorage.getItem(ATLAS_STORAGE_KEYS.nombre) || 'Usuario';
-        const asunto = `Requisición de productos [${urgencia}]`;
-        const listaProductos = productosSolicitados
-            .map((p) => `- ${p.codigo} · ${p.nombre}: ${p.cantidadSolicitada} unidades`)
-            .join('\r\n');
-        const cuerpo =
-            `Solicitado por: ${nombreUsuario}\r\n` +
-            `Nivel de urgencia: ${urgencia}\r\n` +
-            `Motivo: ${motivo || '(sin especificar)'}\r\n\r\n` +
-            `Productos solicitados:\r\n${listaProductos}`;
+        confirmarSolpedBtn.disabled = true;
+        const loadingToast = showToast('Enviando solicitud...', 'info', 0);
 
-        const enlaceMailto = `mailto:${destino}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
-        window.location.href = enlaceMailto;
+        try {
+            await apiFetch('/solicitudes', {
+                method: 'POST',
+                body: JSON.stringify({ items }),
+            });
 
-        showToast('Se abrió tu cliente de correo — revisa el mensaje y da clic en enviar', 'success', 4500);
-        closeModal(correoComprasModal);
+            hideToast(loadingToast);
+            showToast('Solicitud enviada al administrador', 'success');
+            closeModal(solpedModal);
 
-        // Registro best-effort en el backend (para que quede historial en
-        // el sistema). No bloquea la apertura del correo ni muestra error
-        // al usuario si falla — lo importante ya ocurrió del lado suyo.
-        apiFetch('/correo/compras', {
-            method: 'POST',
-            body: JSON.stringify({ productos: productosSolicitados, motivo, urgencia }),
-        }).catch((error) => {
-            console.warn('No se pudo registrar la requisición en el backend:', error.message);
-        });
+        } catch (error) {
+            hideToast(loadingToast);
+            showToast(error.message || 'Ocurrió un error al enviar la solicitud', 'error');
+        } finally {
+            confirmarSolpedBtn.disabled = false;
+        }
     });
 
     /* ============================================================
