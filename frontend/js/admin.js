@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function cargarTodo() {
-        await Promise.all([cargarProductos(), cargarUsuarios(), cargarMovimientos(7)]);
+        await Promise.all([cargarProductos(), cargarUsuarios(), cargarMovimientos(7), cargarSolpeds()]);
     }
 
     /* ============================================================
@@ -828,6 +828,212 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ============================================================
+   Solicitudes de pedido (solped)
+   ============================================================ */
+
+    let solpeds = [];
+
+    const cuerpoTablaSolped = document.getElementById('cuerpo-tabla-solped');
+    const solpedVacioRow = document.getElementById('solped-vacio-row');
+    const filtroSolped = document.getElementById('filtro-solped');
+    const filtroSolpedEstatus = document.getElementById('filtro-solped-estatus');
+    const verSolpedModal = document.getElementById('ver-solped-modal');
+
+    async function cargarSolpeds() {
+        const data = await apiFetch('/solpeds');
+        solpeds = data.solpeds;
+    }
+
+    function obtenerSolpedsFiltradas() {
+        const busqueda = filtroSolped.value.trim().toLowerCase();
+        const estatus = filtroSolpedEstatus.value;
+
+        return solpeds.filter((s) => {
+            const coincideBusqueda = !busqueda || String(s.numero).toLowerCase().includes(busqueda);
+            const coincideEstatus = !estatus || s.estatus === estatus;
+            return coincideBusqueda && coincideEstatus;
+        });
+    }
+
+    const etiquetaEstatus = {
+        activa: 'Activa',
+        cerrada: 'Cerrada',
+        pendiente: 'Pendiente',
+        cancelada: 'Cancelada',
+    };
+
+    function renderTablaSolped() {
+        cuerpoTablaSolped.querySelectorAll('tr:not(#solped-vacio-row)').forEach((row) => row.remove());
+
+        const lista = obtenerSolpedsFiltradas();
+
+        if (lista.length === 0) {
+            solpedVacioRow.style.display = '';
+            solpedVacioRow.querySelector('td').textContent = solpeds.length === 0
+                ? 'Aún no hay solicitudes registradas.'
+                : 'Ninguna solicitud coincide con los filtros aplicados.';
+            return;
+        }
+
+        solpedVacioRow.style.display = 'none';
+
+        lista.forEach((solped) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+            <td>${solped.numero}</td>
+            <td>${formatearFechaHora(solped.fecha_creacion)}</td>
+            <td>${solped.total_productos ?? '—'}</td>
+            <td>${solped.solicitante_nombre ?? '—'}</td>
+            <td><span class="badge badge-solped-${solped.estatus}">${etiquetaEstatus[solped.estatus] ?? solped.estatus}</span></td>
+            <td>
+                <div class="fila-acciones">
+                    <button type="button" class="btn-icono" data-accion="ver" data-id="${solped.id}">Ver</button>
+                    <button type="button" class="btn-icono btn-icono-danger" data-accion="cancelar" data-id="${solped.id}">Cancelar</button>
+                </div>
+            </td>
+        `;
+            cuerpoTablaSolped.appendChild(row);
+        });
+    }
+
+    [filtroSolped, filtroSolpedEstatus].forEach((el) => el.addEventListener('input', renderTablaSolped));
+
+    /* ---------- Abrir modal "Ver solped" ---------- */
+
+    function abrirVerSolped(solped) {
+        document.getElementById('ver-solped-numero').textContent = solped.numero;
+        document.getElementById('ver-solped-fecha').textContent = formatearFechaHora(solped.fecha_creacion);
+        document.getElementById('ver-solped-solicitante').textContent = solped.solicitante_nombre ?? '—';
+        document.getElementById('ver-solped-notas').textContent = solped.notas || '—';
+
+        // Badge de estatus
+        const estatusEl = document.getElementById('ver-solped-estatus');
+        estatusEl.innerHTML = `<span class="badge badge-solped-${solped.estatus}">${etiquetaEstatus[solped.estatus] ?? solped.estatus}</span>`;
+
+        // Tabla de productos
+        const tbody = document.getElementById('ver-solped-productos');
+        tbody.innerHTML = '';
+
+        if (solped.productos && solped.productos.length > 0) {
+            solped.productos.forEach((p) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${p.codigo}</td>
+                <td>${p.nombre}</td>
+                <td>${p.cantidad}</td>
+            `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr class="tabla-vacio"><td colspan="3">Sin productos registrados</td></tr>';
+        }
+
+        openModal(verSolpedModal);
+    }
+
+    /* ---------- Delegación de eventos en la tabla ---------- */
+
+    cuerpoTablaSolped.addEventListener('click', async (event) => {
+        const btn = event.target.closest('[data-accion]');
+        if (!btn) return;
+
+        const id = Number(btn.dataset.id);
+        const solped = solpeds.find((s) => s.id === id);
+        if (!solped) return;
+
+        if (btn.dataset.accion === 'ver') {
+            // Si los productos vienen en la lista, se muestran directo;
+            // si el backend los omite por peso, se hace una segunda llamada.
+            if (solped.productos) {
+                abrirVerSolped(solped);
+            } else {
+                const loadingToast = showToast('Cargando solicitud...', 'info', 0);
+                try {
+                    const data = await apiFetch(`/solpeds/${id}`);
+                    Object.assign(solped, data.solped); // cachea para la próxima vez
+                    hideToast(loadingToast);
+                    abrirVerSolped(solped);
+                } catch (error) {
+                    hideToast(loadingToast);
+                    showToast(error.message || 'No se pudo cargar la solicitud', 'error');
+                }
+            }
+        }
+
+        if (btn.dataset.accion === 'cancelar') {
+            if (!confirm(`¿Cancelar la solicitud #${solped.numero}? Esta acción no se puede deshacer.`)) return;
+
+            const loadingToast = showToast('Cancelando solicitud...', 'info', 0);
+            try {
+                await apiFetch(`/solpeds/${id}/estatus`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ estatus: 'cancelada' }),
+                });
+                solped.estatus = 'cancelada';
+                renderTablaSolped();
+                hideToast(loadingToast);
+                showToast('Solicitud cancelada', 'success');
+            } catch (error) {
+                hideToast(loadingToast);
+                showToast(error.message || 'No se pudo cancelar la solicitud', 'error');
+            }
+        }
+    });
+
+    /* ---------- Actualizar ---------- */
+
+    document.getElementById('actualizar-solped-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('actualizar-solped-btn');
+        btn.disabled = true;
+        const loadingToast = showToast('Actualizando solicitudes...', 'info', 0);
+        try {
+            await cargarSolpeds();
+            renderTablaSolped();
+            hideToast(loadingToast);
+            showToast('Solicitudes actualizadas', 'success');
+        } catch (error) {
+            hideToast(loadingToast);
+            showToast(error.message || 'No se pudo actualizar las solicitudes', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    /* ---------- Exportar ---------- */
+
+    function generarCSVSolped(lista) {
+        const encabezados = ['# Solicitud', 'Fecha', 'Solicitante', 'Productos', 'Estatus'];
+        const filas = lista.map((s) => [
+            s.numero,
+            s.fecha_creacion,
+            s.solicitante_nombre ?? '',
+            s.total_productos ?? '',
+            etiquetaEstatus[s.estatus] ?? s.estatus,
+        ]);
+        return [encabezados, ...filas]
+            .map((fila) => fila.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+    }
+
+    document.getElementById('exportar-solped-btn').addEventListener('click', () => {
+        if (solpeds.length === 0) {
+            showToast('No hay solicitudes para exportar', 'error');
+            return;
+        }
+        const csv = generarCSVSolped(obtenerSolpedsFiltradas());
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `solpeds-atlas-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Historial exportado', 'success');
+    });
+
+    /* ============================================================
        Cerrar sesión
        ============================================================ */
 
@@ -848,6 +1054,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderDashboard();
             renderTablaUsuarios();
             renderTablaInventario();
+            renderTablaSolped();
         } catch (error) {
             showToast(error.message || 'No se pudo cargar la información inicial', 'error');
         }

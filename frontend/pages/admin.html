@@ -39,10 +39,10 @@
                     Gestión de movimientos de inventario
                 </button>
                 <button type="button" class="nav-item" data-section="maquinas">
-                    Gestioón de solicitudes de pedido 
+                    Gestión de solicitudes de pedido
                 </button>
                 <button type="button" class="nav-item" data-section="pendientes">
-                    Gestión de pendientes 
+                    Gestión de pendientes
                 </button>
                 <button type="button" class="nav-item" data-section="maquianas">
                     Metricas de máquinas
@@ -64,49 +64,57 @@
             <section class="admin-section is-active" id="section-dashboard">
                 <header class="admin-header">
                     <div>
-                        <h1>Dashboard</h1>
-                        <p class="admin-subtitle">Resumen general del almacén</p>
+                        <h1>Dashboard general</h1>
+                        <p class="admin-subtitle">Resumen general del sistema</p>
                     </div>
                     <button type="button" class="btn-secondary" id="actualizar-dashboard-btn">Actualizar</button>
                 </header>
 
                 <div class="kpi-grid">
+                    <h1>Métricas principales</h1>
                     <div class="kpi-card">
-                        <span class="kpi-label">Total de productos</span>
+                        <span class="kpi-label">Total de productos en inventario</span>
                         <span class="kpi-value" id="kpi-total-productos">0</span>
-                    </div>
-                    <div class="kpi-card">
-                        <span class="kpi-label">Piezas en inventario</span>
-                        <span class="kpi-value" id="kpi-total-piezas">0</span>
                     </div>
                     <div class="kpi-card kpi-card-warning">
                         <span class="kpi-label">Productos en stock bajo</span>
+                        <span class="kpi-value" id="kpi-stock-bajo">0</span>
+                    </div>
+                    <div class="kpi-card kpi-card-warning">
+                        <span class="kpi-label">Productos en stock alto</span>
                         <span class="kpi-value" id="kpi-stock-bajo">0</span>
                     </div>
                     <div class="kpi-card">
                         <span class="kpi-label">Usuarios activos</span>
                         <span class="kpi-value" id="kpi-usuarios-activos">0</span>
                     </div>
-                </div>
-
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <h2>Distribución de stock</h2>
-                        <div class="chart-wrapper">
-                            <canvas id="chart-stock-nivel"></canvas>
-                        </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Solped activas</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
                     </div>
-                    <div class="chart-card">
-                        <h2>Productos por categoría</h2>
-                        <div class="chart-wrapper">
-                            <canvas id="chart-categorias"></canvas>
-                        </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Solped cerradas</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
                     </div>
-                    <div class="chart-card chart-card-wide">
-                        <h2>Movimientos de los últimos 7 días</h2>
-                        <div class="chart-wrapper">
-                            <canvas id="chart-movimientos"></canvas>
-                        </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Solped pendientes</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Solped canceladas</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Pendientes activos</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Pendientes cerrados</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Pendientes en proceso</span>
+                        <span class="kpi-value" id="kpi-total-piezas">0</span>
                     </div>
                 </div>
             </section>
@@ -236,6 +244,55 @@
                 </table>
             </section>
 
+            <!-- ===== Solped ===== -->
+            <section class="admin-solped" id="section-solped">
+                <header class="admin-header">
+                    <div>
+                        <h1>Solicitudes de pedido</h1>
+                        <p class="admin-subtitle">Vista general de solicitudes de pedido</p>
+                    </div>
+                </header>
+
+                <div class="section-toolbar">
+                    <button type="button" class="btn-primary" id="nueva-solped-btn">+ Nueva solicitud</button>
+                    <button type="button" class="btn-secondary" id="actualizar-solped-btn">Actualizar</button>
+                    <div class="field field-inline field-search">
+                        <label for="filtro-solped" class="sr-only">Buscar por número de solicitud</label>
+                        <input type="text" id="filtro-solped" placeholder="# solicitud...">
+                    </div>
+                    <div class="field field-inline">
+                        <label for="filtro-solped-estatus" class="sr-only">Filtrar por estatus</label>
+                        <select id="filtro-solped-estatus">
+                            <option value="">Todos los estatus</option>
+                            <option value="activa">Activa</option>
+                            <option value="cerrada">Cerrada</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-secondary" id="exportar-solped-btn">Exportar historial</button>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th># Solicitud</th>
+                            <th>Fecha de creación</th>
+                            <th>Productos</th>
+                            <th>Solicitante</th>
+                            <th>Estatus</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-solped">
+                        <tr class="tabla-vacio" id="solped-vacio-row">
+                            <td colspan="6">Cargando solicitudes de pedido...</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </section>
+
         </main>
     </div>
 
@@ -306,7 +363,7 @@
     <!-- Modal: Confirmar eliminación de usuario -->
     <div class="modal" id="eliminar-usuario-modal" aria-hidden="true">
         <div class="modal-overlay" data-close-modal></div>
-        <div class="modal-content modal-content-sm" role="dialog" aria-modal="true"
+        <div class="modal-content moda l-content-sm" role="dialog" aria-modal="true"
             aria-labelledby="eliminar-usuario-title">
             <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
             <h2 id="eliminar-usuario-title">Eliminar usuario</h2>
@@ -317,6 +374,58 @@
             <div class="modal-acciones">
                 <button type="button" class="btn-secondary" data-close-modal>Cancelar</button>
                 <button type="button" class="btn-danger" id="confirmar-eliminar-usuario-btn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!--Modal: Ver solped -->
+    <div class="modal" id="ver-solped-modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="ver-solped-title">
+            <button class="close" type="button" data-close-modal aria-label="Cerrar">&times;</button>
+            <h2 id="ver-solped-title">Solicitud de pedido</h2>
+
+            <div class="solped-meta">
+                <div class="solped-meta-fila">
+                    <span class="solped-meta-label"># Solicitud</span>
+                    <span class="solped-meta-valor" id="ver-solped-numero">—</span>
+                </div>
+                <div class="solped-meta-fila">
+                    <span class="solped-meta-label">Fecha</span>
+                    <span class="solped-meta-valor" id="ver-solped-fecha">—</span>
+                </div>
+                <div class="solped-meta-fila">
+                    <span class="solped-meta-label">Solicitante</span>
+                    <span class="solped-meta-valor" id="ver-solped-solicitante">—</span>
+                </div>
+                <div class="solped-meta-fila">
+                    <span class="solped-meta-label">Estatus</span>
+                    <span class="solped-meta-valor" id="ver-solped-estatus">—</span>
+                </div>
+                <div class="solped-meta-fila">
+                    <span class="solped-meta-label">Notas</span>
+                    <span class="solped-meta-valor" id="ver-solped-notas">—</span>
+                </div>
+            </div>
+
+            <h3 class="solped-productos-titulo">Productos solicitados</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody id="ver-solped-productos">
+                    <tr class="tabla-vacio">
+                        <td colspan="3">Sin productos</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="modal-acciones" style="margin-top: 1.5rem;">
+                <button type="button" class="btn-secondary" data-close-modal>Cerrar</button>
             </div>
         </div>
     </div>

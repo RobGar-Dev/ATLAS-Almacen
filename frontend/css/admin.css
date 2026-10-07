@@ -138,7 +138,8 @@
     }
 }
 
-html, body {
+html,
+body {
     height: 100%;
 }
 
@@ -215,7 +216,7 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-                color var(--duration-fast) var(--ease-standard);
+        color var(--duration-fast) var(--ease-standard);
 }
 
 .nav-item:hover {
@@ -261,8 +262,8 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-                color var(--duration-fast) var(--ease-standard),
-                border-color var(--duration-fast) var(--ease-standard);
+        color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
 }
 
 .btn-logout:hover {
@@ -450,7 +451,7 @@ body {
     border: var(--border-width) solid var(--color-border-strong);
     border-radius: var(--radius-sm);
     transition: border-color var(--duration-fast) var(--ease-standard),
-                box-shadow var(--duration-fast) var(--ease-standard);
+        box-shadow var(--duration-fast) var(--ease-standard);
 }
 
 .field-inline input:focus,
@@ -474,9 +475,9 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-                transform var(--duration-fast) var(--ease-standard),
-                border-color var(--duration-fast) var(--ease-standard),
-                color var(--duration-fast) var(--ease-standard);
+        transform var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard),
+        color var(--duration-fast) var(--ease-standard);
 }
 
 .btn-primary {
@@ -603,8 +604,8 @@ body {
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background var(--duration-fast) var(--ease-standard),
-                color var(--duration-fast) var(--ease-standard),
-                border-color var(--duration-fast) var(--ease-standard);
+        color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
 }
 
 .btn-icono:hover {
@@ -717,8 +718,15 @@ body {
 }
 
 @keyframes modal-in {
-    from { opacity: 0; transform: translateY(8px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .modal-content h2 {
@@ -788,7 +796,7 @@ body {
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-md);
     transition: border-color var(--duration-fast) var(--ease-standard),
-                box-shadow var(--duration-fast) var(--ease-standard);
+        box-shadow var(--duration-fast) var(--ease-standard);
 }
 
 .modal-content .field input:focus,
@@ -831,7 +839,7 @@ body {
     opacity: 0;
     transform: translateX(16px);
     transition: opacity var(--duration-base) var(--ease-standard),
-                transform var(--duration-base) var(--ease-standard);
+        transform var(--duration-base) var(--ease-standard);
 }
 
 .toast-visible {
@@ -849,6 +857,71 @@ body {
 
 .toast-error {
     background: var(--color-danger);
+}
+
+/* ============================================================
+   Solicitudes de pedido (solped)
+   ============================================================ */
+
+/* Badges de estatus */
+.badge-solped-activa {
+    color: #0e7a52;
+    background: var(--color-success-soft);
+}
+
+.badge-solped-cerrada {
+    color: var(--ink-700);
+    background: var(--mist-100);
+}
+
+.badge-solped-pendiente {
+    color: #a06a00;
+    background: var(--color-warning-soft);
+}
+
+.badge-solped-cancelada {
+    color: var(--rose-600);
+    background: var(--color-danger-soft);
+}
+
+/* Meta del modal */
+.solped-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--color-bg-alt);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-5);
+}
+
+.solped-meta-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-4);
+    font-size: var(--fs-sm);
+}
+
+.solped-meta-label {
+    font-weight: var(--fw-semibold);
+    color: var(--color-text-subtle);
+    flex-shrink: 0;
+}
+
+.solped-meta-valor {
+    color: var(--color-text);
+    text-align: right;
+}
+
+/* Título de productos dentro del modal */
+.solped-productos-titulo {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
 }
 
 /* ============================================================
